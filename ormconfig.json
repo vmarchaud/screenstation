@@ -1,0 +1,20 @@
+{
+   "type": "postgresql",
+   "database": "postgres",
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "src/shared/models/**/*.ts"
+   ],
+   "migrations": [
+      "src/shared/models/migration/**/*.ts"
+   ],
+   "subscribers": [
+      "src/shared/models/subscriber/**/*.ts"
+   ],
+   "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+   }
+}
