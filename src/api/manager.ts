@@ -2,7 +2,7 @@ import WebSocket from 'ws'
 import config from './config'
 import * as http from 'http'
 import httpErrors from 'http-errors'
-import { waitWebsocket, randomString } from '../shared/utils/common'
+import { waitWebsocket } from '../shared/utils/common'
 import { decodeIO } from '../shared/utils/decode'
 import { PacketIO, HelloPayloadIO, Packet } from '../shared/types/packets'
 
@@ -35,7 +35,7 @@ export class Manager {
         console.log(packet)
         if (packet.type !== 'HELLO') return socket.close()
         const payload = await decodeIO(HelloPayloadIO, packet.payload)
-        const id = randomString(16)
+        const id = payload.name
         const client: Client = {
           ...payload,
           id,
@@ -66,14 +66,14 @@ export class Manager {
     })
   }
 
-  async onMessage (client: Client, data: WebSocket.Data) {
-    const packet = await decodeIO(PacketIO, data)
-    console.log(packet)
+  async onMessage (client: Client, data: string) {
+    const packet = await decodeIO(PacketIO, JSON.parse(data))
+    console.log(JSON.stringify(packet, null, 4))
   }
 
   async sendMessage (clientId: string, packet: Packet) {
     const client = this.clients.find(clnt => clnt.id === clientId)
-    if (client === undefined) throw new httpErrors.NotFound()
+    if (client === undefined) throw new httpErrors.NotFound(`Cannot find client ${clientId}`)
     client.socket.send(JSON.stringify(packet))
   }
 }
