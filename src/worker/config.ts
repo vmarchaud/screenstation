@@ -8,5 +8,5 @@ export default {
   DEFAULT_URL: `file://${path.resolve(__dirname, './resources/background.jpg')}`,
   LAUNCH_POSITION: process.env.LAUNCH_POSITION || '0,0',
   TEST: 1,
-  NAME: process.env.SCREEN_NAME || `screenstation-${randomString(5)}`
+  NAME: process.env.STATION_NAME || `screenstation-${randomString(5)}`
 }
