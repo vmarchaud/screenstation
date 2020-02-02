@@ -1,6 +1,6 @@
-import * as url from 'url'
 
 export default {
   MASTER_WEBSOCKET: process.env.MASTER_WEBSOCKET,
-  WEBSOCKET_PORT: parseInt(url.parse(process.env.MASTER_WEBSOCKET!).port!, 10)
+  WORKER_WEBSOCKET_PORT: parseInt(process.env.WORKER_WEBSOCKET_PORT || '8001', 10),
+  USER_WEBSOCKET_PORT: parseInt(process.env.USER_WEBSOCKET_PORT || '8000', 10)
 }

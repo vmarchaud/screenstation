@@ -13,7 +13,8 @@ export enum PayloadType {
   CAST_VIEW = 'CAST_VIEW',
   CREATE_VIEW = 'CREATE_VIEW',
   LIST_VIEW = 'LIST_VIEW',
-  DELETE_VIEW = 'DELETE_VIEW'
+  DELETE_VIEW = 'DELETE_VIEW',
+  SELECT_VIEW = 'SELECT_VIEW'
 }
 
 export const PacketIO = t.type({
@@ -38,7 +39,8 @@ export const ShowPayloadIO = t.type({
 })
 
 export const ListSinkPayloadIO = t.type({
-  sinks: t.array(SinkIO)
+  sinks: t.array(SinkIO),
+  view: t.string
 })
 
 export const CastViewPayloadIO = t.type({

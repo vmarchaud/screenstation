@@ -36,7 +36,7 @@ const init = async () => {
   // since we use chromium, a warning popup because of the missing creds for google APIs
   process.env.GOOGLE_API_KEY="no"
   process.env.GOOGLE_DEFAULT_CLIENT_ID="no"
-  process.env.GOOGLE_DEFAULT_CLIENT_SECRET="no"
+  process.env.GOOGLE_DEFAUqLT_CLIENT_SECRET="no"
 
   if (config.MASTER_WEBSOCKET === undefined) {
     throw new Error(`No master websocket endpoint was configured`)
@@ -53,6 +53,7 @@ const init = async () => {
     ignoreDefaultArgs: true,
     executablePath: "/usr/bin/google-chrome",
     args: [
+      '--start-fullscreen',
       `--window-position=${config.LAUNCH_POSITION}`,
       '--homepage', config.DEFAULT_URL,
       '--enable-features=NetworkService,NetworkServiceInProcess',
