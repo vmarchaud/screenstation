@@ -14,7 +14,9 @@ export enum PayloadType {
   CREATE_VIEW = 'CREATE_VIEW',
   LIST_VIEW = 'LIST_VIEW',
   DELETE_VIEW = 'DELETE_VIEW',
-  SELECT_VIEW = 'SELECT_VIEW'
+  SELECT_VIEW = 'SELECT_VIEW',
+  START_STREAM_VIEW = 'START_STREAM_VIEW',
+  STOP_STREAM_VIEW = 'STOP_STREAM_VIEW',
 }
 
 export const PacketIO = t.type({
@@ -65,4 +67,23 @@ export const ListViewPayloadIO = t.type({
 export const DeleteViewPayloadIO = t.type({
   worker: t.union([t.undefined, t.string]),
   id: t.string,
+})
+
+export const StartStreamPayLoadIO = t.type({
+  worker: t.string,
+  view: t.string,
+  timeout: t.number
+})
+
+export const StreamEventPayloadIO = t.type({
+  worker: t.string,
+  view: t.string,
+  event: t.type({
+    type: t.literal('click')
+  })
+})
+
+export const StopStreamViewPayLoadIO = t.type({
+  worker: t.string,
+  view: t.string
 })

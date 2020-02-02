@@ -46,6 +46,19 @@ export class UserManager {
       return socket.send(JSON.stringify(packet))
     }
     switch (packet.type) {
+      case PayloadType.START_STREAM_VIEW: {
+        if (targets.length > 1) {
+          packet.error = `Cant target multiple worker for stream`
+          packet.ack = true
+          return socket.send(JSON.stringify(packet))
+        }
+        const worker = targets[0]
+        const res = await worker.startTransaction(packet, (transactionPacket) => {
+          socket.send(JSON.stringify(transactionPacket))
+        })
+        packet.payload = res.payload
+        break
+      }
       default: {
         const res = await Promise.all(targets.map(client => (
           client.send(JSON.parse(JSON.stringify(packet)), true)

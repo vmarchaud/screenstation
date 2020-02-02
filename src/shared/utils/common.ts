@@ -68,3 +68,9 @@ export const waitWebsocket = (ws: WebSocket | WebSocket.Server, successEvent: st
     })
   })
 }
+
+export const sleep = (time: number) => {
+  return new Promise((resolve, reject) => {
+    return setTimeout(resolve, time)
+  })
+}

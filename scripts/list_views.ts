@@ -4,12 +4,13 @@ import { Packet } from '../src/shared/types/packets'
 
 const ws = new WebSocket('ws://localhost:8000')
 const pkt: Packet = {
-  type: 'SHOW',
+  type: 'START_STREAM_VIEW',
   sent: new Date(),
   sequence: 0,
   payload: {
     view: 'default',
-    url: 'http://google.fr'
+    worker: 'test',
+    timeout: 60 * 1000
   },
   error: undefined,
   ack: undefined
@@ -18,7 +19,9 @@ const pkt: Packet = {
 ws.on('message', (data) => {
   const json = JSON.parse(data.toString())
   console.log(json)
-  ws.close()
+  if (json.ack === true) {
+    ws.close()
+  }
 })
 
 ws.on('open', () => {

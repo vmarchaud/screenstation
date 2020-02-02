@@ -6,11 +6,12 @@ import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import config from './config'
 import { decodeIO } from '../shared/utils/decode'
-import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO } from '../shared/types/packets'
+import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO, StartStreamPayLoadIO, StopStreamViewPayLoadIO } from '../shared/types/packets'
 import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
 import {Page, Browser} from 'puppeteer'
+import { sleep } from '../shared/utils/common'
 import of from '../shared/utils/of'
 
 const views: View[] = []
@@ -56,7 +57,7 @@ const init = async () => {
     ignoreDefaultArgs: true,
     executablePath: "/usr/bin/google-chrome",
     args: [
-      '--start-fullscreen',
+      '--start -fullscreen',
       `--window-position=${config.LAUNCH_POSITION}`,
       '--homepage', config.DEFAULT_URL,
       '--enable-features=NetworkService,NetworkServiceInProcess',
@@ -99,7 +100,6 @@ const init = async () => {
       return ws.send(packet)
     }
     console.log(packet)
-    packet.ack = true
     switch (packet.type) {
       case PayloadType.SHOW: {
         const [payload, err] = await of(decodeIO(ShowPayloadIO, packet.payload))
@@ -154,7 +154,56 @@ const init = async () => {
         await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
         break
       }
+      case PayloadType.START_STREAM_VIEW: {
+        const payload = await decodeIO(StartStreamPayLoadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        // start sending frames
+        view.session.on('Page.screencastFrame', (res) => {
+          console.log(`Sending frame ${res.sessionId} for view ${view.id}`)
+          const sessionId = res.sessionId
+          // TODO: we could improve streaming by ack each frame to the final client
+          view.session.send('Page.screencastFrameAck', { sessionId })
+          // send each frame to our client
+          const framePacket = JSON.parse(JSON.stringify(packet))
+          framePacket.payload = res
+          framePacket.ack = false
+          framePacket.sent = new Date()
+          return ws.send(framePacket)
+        })
+        await view.session.send('Page.startScreencast', { everyNthFrame: 2 })
+        // will wait until either we pass the timeout or the stop event is called
+        await Promise.race([
+          sleep(payload.timeout),
+          new Promise((resolve, reject) => {
+            const onStopHandler = (viewId) => {
+              if (viewId !== view.id) return
+              ws.removeListener(PayloadType.STOP_STREAM_VIEW, onStopHandler)
+              return resolve()
+            }
+            ws.on(PayloadType.STOP_STREAM_VIEW, onStopHandler)
+          })
+        ])
+        // stop sending frames
+        await view.session.send('Page.stopScreencast')
+        break
+      }
+      case PayloadType.STOP_STREAM_VIEW: {
+        const payload = await decodeIO(StopStreamViewPayLoadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        ws.emit(PayloadType.STOP_STREAM_VIEW, view.id)
+        break
+      }
     }
+    packet.ack = true
+    packet.sent = new Date()
     ws.send(packet)
     console.log(packet)
   })

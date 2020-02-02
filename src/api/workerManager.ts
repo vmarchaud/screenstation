@@ -27,13 +27,11 @@ export class Worker {
   }
   
   send (packet: Packet, ack: boolean = false): Promise<Packet> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       packet.sequence = this.options.sequence
       this.options.socket.send(JSON.stringify(packet))
       if (ack === true) {
-        this.ackStore.set(`${this.options.id}:${packet.sequence}`, (packet: Packet) => {
-          return resolve(packet)
-        })
+        this.ackStore.set(`${this.options.id}:${packet.sequence}`, resolve)
         this.options.sequence += 1
       } else {
         this.options.sequence += 1
@@ -41,6 +39,17 @@ export class Worker {
       }
     })
   }
+
+  startTransaction (packet: Packet, onPacket: (packet: Packet) => void): Promise<Packet> {
+    return new Promise((resolve) => {
+      packet.sequence = this.options.sequence
+      this.options.socket.send(JSON.stringify(packet))
+      this.ackStore.set(`${this.options.id}:${packet.sequence}`, (packet: Packet) => {
+        return packet.ack === true ? resolve(packet) : onPacket(packet)
+      })
+      this.options.sequence += 1
+    })
+  } 
 }
 
 export class WorkerManager {
@@ -102,9 +111,13 @@ export class WorkerManager {
     const packet = await decodeIO(PacketIO, JSON.parse(data))
     const waitAckKey = `${client.id}:${packet.sequence}`
     const listener = this._waitAcks.get(waitAckKey)
-    if (listener !== undefined && packet.ack === true) {
+    if (listener !== undefined) {
       listener(packet)
-      this._waitAcks.delete(waitAckKey)
+      // only delete callbacks when we receive ack, transaction might involve
+      // multiple packets (like streaming)
+      if (packet.ack === true) {
+        this._waitAcks.delete(waitAckKey)
+      }
     }
     console.log(JSON.stringify(packet, null, 4))
   }
