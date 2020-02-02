@@ -11,6 +11,7 @@ import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
 import {Page, Browser} from 'puppeteer'
+import of from '../shared/utils/of'
 
 const views: View[] = []
 const createView = async (browser: Browser, id: string): Promise<View> => {
@@ -27,6 +28,8 @@ const createView = async (browser: Browser, id: string): Promise<View> => {
   await page.goto(config.DEFAULT_URL)
   return {
     id: id,
+    currentURL: config.DEFAULT_URL.includes('?') ?
+      config.DEFAULT_URL.split('?')[0] : config.DEFAULT_URL,
     session,
     page
   }
@@ -88,12 +91,23 @@ const init = async () => {
   
 
   ws.on('message', async (data) => {
-    const packet = await decodeIO(PacketIO, JSON.parse(data))
+    const [ packet, err ] = await of(decodeIO(PacketIO, JSON.parse(data)))
+    if (packet === undefined) return
+    if (err) {
+      packet.error = err.message || `Failed to decode`
+      packet.ack = true
+      return ws.send(packet)
+    }
     console.log(packet)
     packet.ack = true
     switch (packet.type) {
       case PayloadType.SHOW: {
-        const payload = await decodeIO(ShowPayloadIO, packet.payload)
+        const [payload, err] = await of(decodeIO(ShowPayloadIO, packet.payload))
+        if (payload === undefined || err) {
+          packet.error = err ? err.message : `Failed to decode`
+          packet.ack = true
+          return ws.send(packet)
+        }
         const view = views.find(view => view.id === payload.view)
         if (view === undefined) {
           packet.error = `Failed to find view with id ${payload.view}`
@@ -109,6 +123,7 @@ const init = async () => {
       case PayloadType.LIST_VIEW: {
         packet.payload = { views: views.map(view => ({
           id: view.id,
+          worker: config.NAME,
           currentURL: view.currentURL,
           sink: view.sink
         })) }

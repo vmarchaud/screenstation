@@ -74,7 +74,7 @@ export class WorkerManager {
           ackStore: this._waitAcks
         })
         console.log(`New client ${id} is connected`)
-        socket.on('message', this.onMessage.bind(this, [ client ]))
+        socket.on('message', this.onMessage.bind(this, client))
         socket.on('error', (err) => {
           console.error(`Error with client ${id}`, err)
           socket.close()

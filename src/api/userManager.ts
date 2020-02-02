@@ -27,7 +27,7 @@ export class UserManager {
   }
 
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {
-    socket.on('message', this.onMessage.bind(this, [ socket ]))
+    socket.on('message', this.onMessage.bind(this, socket))
     socket.on('ping', socket.pong)
     socket.on('error', (err) => {
       socket.close()
@@ -37,11 +37,22 @@ export class UserManager {
   async onMessage (socket: WebSocket, data: string) {
     const packet = await decodeIO(PacketIO, JSON.parse(data))
     console.log(JSON.stringify(packet, null, 4))
+    const target = (packet.payload as any).worker as string | undefined
+    const targets = target === undefined ?
+      this._workerManager.clients : this._workerManager.clients.filter(client => client.name === target)
+    if (targets === undefined) {
+      packet.error = `Cant find specified worker`
+      packet.ack = true
+      return socket.send(JSON.stringify(packet))
+    }
     switch (packet.type) {
-      case PayloadType.LIST_VIEW: {
-        const res = await Promise.all(this._workerManager.clients.map(client => client.send(packet, true)))
-        packet.payload = res.map(pkt => pkt.payload)
-        break
+      default: {
+        const res = await Promise.all(targets.map(client => (
+          client.send(JSON.parse(JSON.stringify(packet)), true)
+        )))
+        packet.payload = res.map((pkt, idx) => {
+          return Object.assign({ worker: targets[idx].id }, pkt.payload)
+        })
       }
     }
     packet.ack = true

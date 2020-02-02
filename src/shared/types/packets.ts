@@ -35,28 +35,34 @@ export const HelloPayloadIO = t.type({
 
 export const ShowPayloadIO = t.type({
   url: t.string,
+  worker: t.union([t.undefined, t.string]),
   view: t.string
 })
 
 export const ListSinkPayloadIO = t.type({
   sinks: t.array(SinkIO),
+  worker: t.union([t.undefined, t.string]),
   view: t.string
 })
 
 export const CastViewPayloadIO = t.type({
   sinkName: t.string,
+  worker: t.string,
   view: t.string
 })
 
 export const CreateViewPayloadIO = t.type({
   id: t.string,
+  worker: t.union([t.undefined, t.string]),
   url: t.union([ t.undefined, t.string ])
 })
 
 export const ListViewPayloadIO = t.type({
+  worker: t.union([t.undefined, t.string]),
   views: ViewIO
 })
 
 export const DeleteViewPayloadIO = t.type({
+  worker: t.union([t.undefined, t.string]),
   id: t.string,
 })
