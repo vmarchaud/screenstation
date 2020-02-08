@@ -1,0 +1,82 @@
+<head>
+</head>
+
+<body>
+  <img id="test" src="" style="max-width: -webkit-fill-available; max-height: -webkit-fill-available;" alt="">
+  <button onclick="startStream()">Start the stream</button>
+  <button onclick="stopStream()">Stop the stream</button>
+  <script>
+    const ws = new WebSocket('ws://localhost:8000')
+    const img = document.getElementById('test')
+    const body = document.getElementById('body')
+    const packet = {
+      type: 'START_STREAM_VIEW',
+      sent: new Date(),
+      sequence: 0,
+      payload: {
+        view: 'default',
+        worker: 'test',
+        timeout: 30 * 1000
+      },
+      error: undefined,
+      ack: undefined
+    }
+    const screenSize = {
+      width: 0,
+      height: 0
+    }
+    document.addEventListener('keypress', function (event) {
+      const params = {
+        code: event.code,
+        key: event.key
+      }
+      console.log('keypress', params.code)
+      const pkt = JSON.parse(JSON.stringify(packet))
+      pkt.type = 'EVENT_STREAM_VIEW'
+      pkt.payload = {
+        view: pkt.payload.view,
+        worker: pkt.payload.worker,
+        event: { type: 'keypress', params }
+      }
+      return ws.send(JSON.stringify(pkt))
+    });
+    img.onclick = function (event) {
+      const imgPosition = {
+        x: event.offsetX,
+        y: event.offsetY
+      }
+      const actualPosition = {
+        x: screenSize.width * imgPosition.x / img.width,
+        y: screenSize.height * imgPosition.y / img.height
+      }
+      const pkt = JSON.parse(JSON.stringify(packet))
+      pkt.type = 'EVENT_STREAM_VIEW'
+      pkt.payload = {
+        view: pkt.payload.view,
+        worker: pkt.payload.worker,
+        event: { type: 'click', params: actualPosition }
+      }
+      return ws.send(JSON.stringify(pkt))
+    }
+    window.stopStream = () => {
+      const pkt = JSON.parse(JSON.stringify(packet))
+      pkt.type = 'STOP_STREAM_VIEW'
+      return ws.send(JSON.stringify(pkt))
+    }
+    window.startStream = () => {
+      const pkt = JSON.parse(JSON.stringify(packet))
+      return ws.send(JSON.stringify(pkt))
+    }
+    ws.onmessage = (data) => {
+      const json = JSON.parse(data.data)
+      if (json.type === 'START_STREAM_VIEW' && json.payload.data) {
+        img.setAttribute("src", "data:image/png;base64," + json.payload.data)
+        screenSize.width = json.payload.metadata.deviceWidth
+        screenSize.height = json.payload.metadata.deviceHeight
+      }
+    }
+
+    ws.onopen = () => console.log('open')
+
+  </script>
+</body>

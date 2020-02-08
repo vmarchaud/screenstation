@@ -213,6 +213,27 @@ const init = async () => {
         ws.emit(PayloadType.STOP_STREAM_VIEW, view.id)
         break
       }
+      case PayloadType.EVENT_STREAM_VIEW: {
+        const payload = await decodeIO(StreamEventPayloadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        switch (payload.event.type) {
+          case 'click': {
+            const { x, y } = payload.event.params
+            await view.session.send('Input.dispatchMouseEvent', {
+              x, y, type: 'mousePressed', button: 'left', clickCount: 1
+            })
+            await view.session.send('Input.dispatchMouseEvent', {
+              x, y, type: 'mouseReleased', button: 'left', clickCount: 1
+            })
+            break
+          }
+        }
+        break
+      }
     }
     packet.ack = true
     packet.sent = new Date()

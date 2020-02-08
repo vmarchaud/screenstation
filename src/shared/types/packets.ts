@@ -16,6 +16,7 @@ export enum PayloadType {
   DELETE_VIEW = 'DELETE_VIEW',
   SELECT_VIEW = 'SELECT_VIEW',
   START_STREAM_VIEW = 'START_STREAM_VIEW',
+  EVENT_STREAM_VIEW = 'EVENT_STREAM_VIEW',
   STOP_STREAM_VIEW = 'STOP_STREAM_VIEW',
 }
 
@@ -79,7 +80,8 @@ export const StreamEventPayloadIO = t.type({
   worker: t.string,
   view: t.string,
   event: t.type({
-    type: t.literal('click')
+    type: t.union([t.literal('click'), t.literal('keypress')]),
+    params: t.any
   })
 })
 
