@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import config from './config'
 import { decodeIO } from '../shared/utils/decode'
-import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO, StartStreamPayLoadIO, StopStreamViewPayLoadIO } from '../shared/types/packets'
+import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO, StartStreamPayLoadIO, StopStreamViewPayLoadIO, StreamEventPayloadIO } from '../shared/types/packets'
 import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
@@ -57,7 +57,7 @@ const init = async () => {
     ignoreDefaultArgs: true,
     executablePath: "/usr/bin/google-chrome",
     args: [
-      '--start -fullscreen',
+      '--start-fullscreen',
       `--window-position=${config.LAUNCH_POSITION}`,
       '--homepage', config.DEFAULT_URL,
       '--enable-features=NetworkService,NetworkServiceInProcess',
@@ -85,9 +85,18 @@ const init = async () => {
   views.push(await createView(browser, 'default'))
   views[0].session.on('Cast.sinksUpdated', (res: { sinks: Sink[] }) => {
     if (res.sinks.length === 0) return
-    const newSinks = res.sinks.filter(sink => sinksAvailable.find(snk => snk.id !== sink.id) === undefined)
-    sinksAvailable.push(...newSinks)
-    console.log(sinksAvailable)
+    res.sinks.map(sink => {
+      const idMatches = sink.id.match(/:<(.*)>/)
+      sink.id = idMatches !== null ? idMatches[1] : sink.id
+      return sink
+    }).forEach(sink => {
+      const previousSinkIdx = sinksAvailable.findIndex(snk => snk.id === sink.id)
+      if (previousSinkIdx === -1) {
+        sinksAvailable.push(sink)
+      } else {
+        sinksAvailable.splice(previousSinkIdx, 1, sink)
+      }
+    })
   })
   
 
@@ -174,12 +183,15 @@ const init = async () => {
           framePacket.sent = new Date()
           return ws.send(framePacket)
         })
-        await view.session.send('Page.startScreencast', { everyNthFrame: 2 })
+        await view.session.send('Page.startScreencast', {
+          everyNthFrame: 2,
+          format: 'png'
+        })
         // will wait until either we pass the timeout or the stop event is called
         await Promise.race([
           sleep(payload.timeout),
           new Promise((resolve, reject) => {
-            const onStopHandler = (viewId) => {
+            const onStopHandler = (viewId: string) => {
               if (viewId !== view.id) return
               ws.removeListener(PayloadType.STOP_STREAM_VIEW, onStopHandler)
               return resolve()
