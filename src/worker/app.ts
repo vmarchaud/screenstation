@@ -231,6 +231,14 @@ const init = async () => {
             })
             break
           }
+          case 'keypress': {
+            const params = payload.event.params
+            await view.session.send('Input.dispatchKeyEvent', {
+              ...params,
+              type: 'keyDown'
+            })
+            break
+          }
         }
         break
       }
@@ -238,7 +246,6 @@ const init = async () => {
     packet.ack = true
     packet.sent = new Date()
     ws.send(packet)
-    console.log(packet)
   })
   const helloPacket: Packet = {
     type: 'HELLO',

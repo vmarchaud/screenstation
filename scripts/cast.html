@@ -28,9 +28,8 @@
     document.addEventListener('keypress', function (event) {
       const params = {
         code: event.code,
-        key: event.key
+        text: event.key
       }
-      console.log('keypress', params.code)
       const pkt = JSON.parse(JSON.stringify(packet))
       pkt.type = 'EVENT_STREAM_VIEW'
       pkt.payload = {
