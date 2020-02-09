@@ -11,7 +11,7 @@ import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
 import {Page, Browser} from 'puppeteer'
-import * as mdns from 'mdns'
+import mdns from 'mdns'
 import { sleep } from '../shared/utils/common'
 import of from '../shared/utils/of'
 
@@ -74,7 +74,6 @@ const init = async () => {
     args: [
       '--start-fullscreen',
       `--window-position=${config.LAUNCH_POSITION}`,
-      '--homepage', config.DEFAULT_URL,
       '--enable-features=NetworkService,NetworkServiceInProcess',
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
