@@ -25,20 +25,59 @@
       width: 0,
       height: 0
     }
-    document.addEventListener('keypress', function (event) {
+    const SPACE_KEY_CODE = 32;
+    const ENTER_KEY_CODE = 13;
+    const SPECIAL_KEY_CODES = [
+      37,38,39,40,//arrows
+      8,//backspace
+      27,//esc
+      9,//tab
+      ENTER_KEY_CODE,//enter
+      SPACE_KEY_CODE,//space
+      45, 46, 33, 34, 35, 36//special keys
+    ]
+    const streamKeyboardInput = (type, event) => {
+      let text = ""
+
+      switch (type) {
+        case 'keyup':
+          type = 'keyUp';
+          break;
+        case 'keydown':
+          type = 'rawKeyDown';
+          break;
+        case 'keypress':
+          type = 'char';
+          text = String.fromCharCode(event.keyCode);
+          break;
+        default:
+          throw new Error("Unknown type of event.");
+          break;
+      }
+
+      let modifiers = 0;
+      if (event.shiftKey) modifiers += 8
+      if (event.altKey) modifiers += 1
+      if (event.ctrlKey) modifiers += 2;
+      if (event.metaKey) modifiers += 4;
       const params = {
-        code: event.code,
-        text: event.key
+        windowsVirtualKeyCode: event.keyCode,
+        modifiers,
+        type,
+        text
       }
       const pkt = JSON.parse(JSON.stringify(packet))
       pkt.type = 'EVENT_STREAM_VIEW'
       pkt.payload = {
         view: pkt.payload.view,
         worker: pkt.payload.worker,
-        event: { type: 'keypress', params }
+        event: { type: 'rawKeyDown', params }
       }
       return ws.send(JSON.stringify(pkt))
-    });
+    }
+    document.addEventListener('keydown', (event) => streamKeyboardInput('keydown', event))
+    document.addEventListener('keyup', (event) => streamKeyboardInput('keyup', event))
+    document.addEventListener('keypress', (event) => streamKeyboardInput('keypress', event))
     img.onclick = function (event) {
       const imgPosition = {
         x: event.offsetX,

@@ -80,7 +80,12 @@ export const StreamEventPayloadIO = t.type({
   worker: t.string,
   view: t.string,
   event: t.type({
-    type: t.union([t.literal('click'), t.literal('keypress')]),
+    type: t.union([
+      t.literal('click'),
+      t.literal('rawKeyDown'),
+      t.literal('char'),
+      t.literal('keyup')
+    ]),
     params: t.any
   })
 })

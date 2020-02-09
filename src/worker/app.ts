@@ -231,12 +231,9 @@ const init = async () => {
             })
             break
           }
-          case 'keypress': {
+          case 'rawKeyDown': {
             const params = payload.event.params
-            await view.session.send('Input.dispatchKeyEvent', {
-              ...params,
-              type: 'keyDown'
-            })
+            await view.session.send('Input.dispatchKeyEvent', params)
             break
           }
         }
