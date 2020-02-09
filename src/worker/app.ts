@@ -11,6 +11,7 @@ import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
 import {Page, Browser} from 'puppeteer'
+import * as mdns from 'mdns'
 import { sleep } from '../shared/utils/common'
 import of from '../shared/utils/of'
 
@@ -36,20 +37,34 @@ const createView = async (browser: Browser, id: string): Promise<View> => {
   }
 }
 
+const discoverMaster = async (): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const browser = mdns.createBrowser(mdns.tcp('ws'))
+    browser.on('serviceUp', (service: mdns.Service) => {
+      if (service.name !== 'screenstation-workers') return
+      browser.stop()
+      return resolve(`ws://${service.host}:${service.port}`)
+    })
+    browser.on('error', console.error)
+    browser.start()
+  })
+}
+
 const init = async () => {
   // since we use chromium, a warning popup because of the missing creds for google APIs
   process.env.GOOGLE_API_KEY="no"
   process.env.GOOGLE_DEFAULT_CLIENT_ID="no"
   process.env.GOOGLE_DEFAUqLT_CLIENT_SECRET="no"
 
-  if (config.MASTER_WEBSOCKET === undefined) {
-    throw new Error(`No master websocket endpoint was configured`)
-  }
+  console.log('Waiting to discover master on network using mdns')
+  const masterAddress = await discoverMaster()
+  console.log(`Disovered master available at ${masterAddress}, connecting ..`)
 
   // try to connect to websocket master
-  const ws = new WebsocketTransport(config.MASTER_WEBSOCKET)
+  const ws = new WebsocketTransport(masterAddress)
 
   await ws.connect()
+  console.log(`Connected to master`)
   // setup puppeteer
   puppeteer.use(StealthPlugin())
   const browser = await puppeteer.launch({

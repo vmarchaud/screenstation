@@ -5,6 +5,7 @@ import { waitWebsocket } from '../shared/utils/common'
 import { decodeIO } from '../shared/utils/decode'
 import { WorkerManager } from './workerManager'
 import { PacketIO, PayloadType } from '../shared/types/packets'
+import * as mdns from 'mdns'
 
 export type Client = {
   socket: WebSocket
@@ -24,6 +25,10 @@ export class UserManager {
     this._server.on('connection', this.onConnection.bind(this))
     await waitWebsocket(this._server, 'listening')
     console.log(`User Websocket server listening on port ${config.USER_WEBSOCKET_PORT}`)
+    const adv = mdns.createAdvertisement(mdns.tcp('ws'), config.USER_WEBSOCKET_PORT, {
+      name: 'screenstation-api'
+    })
+    adv.start()
   }
 
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {

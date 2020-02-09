@@ -4,6 +4,7 @@ import * as http from 'http'
 import { waitWebsocket } from '../shared/utils/common'
 import { decodeIO } from '../shared/utils/decode'
 import { PacketIO, HelloPayloadIO, Packet } from '../shared/types/packets'
+import * as mdns from 'mdns'
 
 export type WorkerOptions = {
   id: string,
@@ -65,6 +66,10 @@ export class WorkerManager {
     this._server.on('connection', this.onConnection.bind(this))
     await waitWebsocket(this._server, 'listening')
     console.log(`Worker Websocket server listening on port ${config.WORKER_WEBSOCKET_PORT}`)
+    const adv = mdns.createAdvertisement(mdns.tcp('ws'), config.WORKER_WEBSOCKET_PORT, {
+      name: 'screenstation-workers'
+    })
+    adv.start()
   }
 
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {
