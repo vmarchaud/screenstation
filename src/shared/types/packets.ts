@@ -82,9 +82,7 @@ export const StreamEventPayloadIO = t.type({
   event: t.type({
     type: t.union([
       t.literal('click'),
-      t.literal('rawKeyDown'),
-      t.literal('char'),
-      t.literal('keyup')
+      t.literal('keypress')
     ]),
     params: t.any
   })

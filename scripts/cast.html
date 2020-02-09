@@ -1,10 +1,7 @@
 <head>
 </head>
-
 <body>
   <img id="test" src="" style="max-width: -webkit-fill-available; max-height: -webkit-fill-available;" alt="">
-  <button onclick="startStream()">Start the stream</button>
-  <button onclick="stopStream()">Stop the stream</button>
   <script>
     const ws = new WebSocket('ws://localhost:8000')
     const img = document.getElementById('test')
@@ -71,9 +68,15 @@
       pkt.payload = {
         view: pkt.payload.view,
         worker: pkt.payload.worker,
-        event: { type: 'rawKeyDown', params }
+        event: { type: 'keypress', params }
       }
-      return ws.send(JSON.stringify(pkt))
+      ws.send(JSON.stringify(pkt))
+      if (modifiers > 0) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      
+      return
     }
     document.addEventListener('keydown', (event) => streamKeyboardInput('keydown', event))
     document.addEventListener('keyup', (event) => streamKeyboardInput('keyup', event))
@@ -96,12 +99,12 @@
       }
       return ws.send(JSON.stringify(pkt))
     }
-    window.stopStream = () => {
+    const stopStream = () => {
       const pkt = JSON.parse(JSON.stringify(packet))
       pkt.type = 'STOP_STREAM_VIEW'
       return ws.send(JSON.stringify(pkt))
     }
-    window.startStream = () => {
+    const startStream = () => {
       const pkt = JSON.parse(JSON.stringify(packet))
       return ws.send(JSON.stringify(pkt))
     }
@@ -113,8 +116,10 @@
         screenSize.height = json.payload.metadata.deviceHeight
       }
     }
-
-    ws.onopen = () => console.log('open')
-
+    window.onbeforeunload = function() {
+      stopStream()
+      ws.close()
+    }
+    ws.onopen = () => startStream()
   </script>
 </body>
