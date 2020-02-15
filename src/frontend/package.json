@@ -1,26 +1,13 @@
 {
-    "name": "@mmit/vuetify-ts-starter",
-    "version": "0.1.12",
-    "author": "Mike Mitterer",
-    "description": "VUETIFY/TS Starter-Template",
-    "keywords": [
-        "typescript vue"
-    ],
+    "name": "screenstation-frontend",
+    "version": "0.1.0",
     "private": true,
     "scripts": {
         "start": "vue-cli-service serve --mode development --open",
         "tc": "tsc --noEmit",
-        "lint": "vue-cli-service lint",
-        "test": "yarn run test:unit",
-        "test:unit": "vue-cli-service test:unit tests/unit/.*",
-        "test:integration": "vue-cli-service test:unit --runInBand --detectOpenHandles tests/integration/.*",
         "build": "vue-cli-service build --mode development",
         "build:prod": "vue-cli-service build --mode production",
         "deploy": "yarn version --new-version patch"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/MikeMitterer/vuetify-ts-starter"
     },
     "dependencies": {
         "@mmit/logging": "^0.1.5",
@@ -41,26 +28,19 @@
         "@mdi/font": "^4.9.95",
         "@types/jest": "25",
         "@types/uuid": "^3.4.7",
+        "@types/vue": "^2.0.0",
         "@vue/cli-plugin-typescript": "^4.2.2",
-        "@vue/cli-plugin-unit-jest": "^4.2.2",
         "@vue/cli-service": "^4.2.2",
         "@vue/test-utils": "1.0.0-beta.31",
-        "babel-jest": "25",
-        "jest": "25",
-        "jest-extended": "^0.11.5",
         "moment": "^2.24.0",
         "sass": "^1.25.0",
         "sass-loader": "8.0.2",
-        "ts-jest": "25",
+        "tslint": "^6.0.0",
+        "tslint-config-standard": "^9.0.0",
         "typescript": "^3.7.5",
         "vue-cli-plugin-vuetify": "^2.0.4",
-        "vue-jest": "^4.0.0-beta.2",
         "vue-template-compiler": "^2.6.11",
         "vuex-class": "^0.3.2",
         "vuex-module-decorators": "^0.16.1"
-    },
-    "resolutions": {
-        "@vue/cli-plugin-unit-jest/jest": "24",
-        "@vue/cli-plugin-unit-jest/babel-jest": "24"
     }
 }
