@@ -11,6 +11,7 @@ export enum PayloadType {
   RESTART = 'RESTART',
   LIST_SINKS = 'LIST_SINKS',
   CAST_VIEW = 'CAST_VIEW',
+  GET_VIEW = 'GET_VIEW',
   CREATE_VIEW = 'CREATE_VIEW',
   LIST_VIEW = 'LIST_VIEW',
   DELETE_VIEW = 'DELETE_VIEW',
@@ -50,6 +51,11 @@ export const ListSinkPayloadIO = t.type({
 
 export const CastViewPayloadIO = t.type({
   sinkName: t.string,
+  worker: t.string,
+  view: t.string
+})
+
+export const GetViewPayloadIO = t.type({
   worker: t.string,
   view: t.string
 })

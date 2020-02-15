@@ -2,7 +2,7 @@ import { LoggerFactory } from '@mmit/logging'
 import { Action, getModule, Module, Mutation, VuexModule } from 'vuex-module-decorators'
 import store from '../index'
 import WSModule from './WebsocketModule'
-import WorkerModule from './WorkerModule'
+import ViewModule from './ViewModule'
 
 @Module({ dynamic: true, namespaced: true, name: InitModule.NAME, store })
 class InitModule extends VuexModule {
@@ -18,7 +18,7 @@ class InitModule extends VuexModule {
   @Action({ commit: 'setLoaded' })
   public async init (): Promise<boolean> {
     await WSModule.connect()
-    await WorkerModule.fetch()
+    await ViewModule.fetch()
     return true
   }
 

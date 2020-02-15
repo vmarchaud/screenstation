@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import config from './config'
 import { decodeIO } from '../shared/utils/decode'
-import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO, StartStreamPayLoadIO, StopStreamViewPayLoadIO, StreamEventPayloadIO } from '../shared/types/packets'
+import { PacketIO, PayloadType, ShowPayloadIO, Packet, CreateViewPayloadIO, CastViewPayloadIO, StartStreamPayLoadIO, StopStreamViewPayLoadIO, StreamEventPayloadIO, GetViewPayloadIO } from '../shared/types/packets'
 import { WebsocketTransport } from '../shared/utils/ws'
 import { Sink } from '../shared/types/sink'
 import { View } from '../shared/types/view'
@@ -159,6 +159,20 @@ const init = async () => {
         if (payload.url !== undefined) {
           await view.page.goto(payload.url)
         }
+        break
+      }
+      case PayloadType.GET_VIEW: {
+        const payload = await decodeIO(GetViewPayloadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        const screenshot = await view.session.send('Page.captureScreenshot', {
+          format: 'jpeg',
+          quality: 40
+        })
+        packet.payload = { screenshot: (screenshot as any).data }
         break
       }
       case PayloadType.CAST_VIEW: {

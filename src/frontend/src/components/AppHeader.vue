@@ -4,7 +4,7 @@
         <!--<router-link to="/about">About</router-link>-->
         <v-toolbar-items>
             <v-btn text to="/" :ripple="false">Home</v-btn>
-            <v-btn text to="/login" :ripple="false">Login</v-btn>
+            <!-- <v-btn text to="/login" :ripple="false">Login</v-btn> -->
         </v-toolbar-items>
     </v-container>
 </template>

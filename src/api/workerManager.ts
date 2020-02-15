@@ -130,6 +130,5 @@ export class WorkerManager {
         this._waitAcks.delete(waitAckKey)
       }
     }
-    console.log(JSON.stringify(packet, null, 4))
   }
 }
