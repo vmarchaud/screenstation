@@ -1,15 +1,16 @@
 <template>
     <v-app id="app" class="layout--off" color="gray-lighten2">
-        <v-app-bar app color="indigo" dark clipped-left>
-            <router-link to="/" class="to-home white--text">
-                <v-toolbar-title class="title">ScreenStation</v-toolbar-title>
-            </router-link>
-            <AppHeader></AppHeader>
-        </v-app-bar>
-        <v-content>
-            <router-view />
-        </v-content>
-        <AppFooter></AppFooter>
+      <Loader :value="loading" message="Connecting to Screenstation .."></Loader>
+      <v-app-bar app color="indigo" dark clipped-left>
+          <router-link to="/" class="to-home white--text">
+              <v-toolbar-title class="title">ScreenStation</v-toolbar-title>
+          </router-link>
+          <AppHeader></AppHeader>
+      </v-app-bar>
+      <v-content>
+          <router-view />
+      </v-content>
+      <AppFooter></AppFooter>  
     </v-app>
 </template>
 
@@ -17,9 +18,21 @@
 import { Component, Vue } from 'vue-property-decorator'
 import AppFooter from './components/AppFooter.vue'
 import AppHeader from './components/AppHeader.vue'
+import Loader from './components/Loader.vue'
 
-@Component({ components: { AppFooter, AppHeader } })
-export default class App extends Vue {}
+import InitModule from './store/modules/InitModule'
+
+@Component({ components: { AppFooter, AppHeader, Loader } })
+export default class App extends Vue {
+
+  public get loading () {
+    return InitModule.isLoaded === false
+  }
+
+  mounted (): void {
+    void InitModule.init()
+  }
+}
 </script>
 
 <style lang="scss">
@@ -28,4 +41,13 @@ export default class App extends Vue {}
         text-decoration: none;
     }
 }
+.dialog.centered-dialog,
+  .v-dialog.centered-dialog
+ {
+    background: #282c2dad;
+    box-shadow: none;
+    border-radius: 6px;
+    width: auto;
+    color: whitesmoke;
+  }
 </style>

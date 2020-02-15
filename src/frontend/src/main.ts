@@ -13,11 +13,6 @@ new Vue({
   router,
   store,
   vuetify,
-
-  mounted (): void {
-    void this.$store.dispatch('readyState')
-  },
-
   // tslint:disable-next-line:typedef
   render: (h) => h(App)
 }).$mount('#app')

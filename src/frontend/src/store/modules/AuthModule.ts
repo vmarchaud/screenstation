@@ -9,7 +9,7 @@ export interface Credential {
 
 @Module({ dynamic: true, namespaced: true, name: AuthModule.NAME, store })
 class AuthModule extends VuexModule {
-  public static readonly NAME = 'authModule'
+  public static readonly NAME = 'auth'
 
   private readonly logger = LoggerFactory.getLogger('store.AuthModule')
 

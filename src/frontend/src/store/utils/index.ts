@@ -1,4 +1,4 @@
-import { RootState } from '@/store/interfaces/RootState'
+import { RootState } from '@/store/index'
 import { Store } from 'vuex'
 
 export function isNotRegistered (moduleName: string, rootStore: Store<RootState>): boolean {
