@@ -1,0 +1,82 @@
+pipeline {
+    agent {
+        label 'linux'
+    }
+
+    // 0 - unchanged, 1 - changed
+    environment { SRC_CHANGED=true }
+
+    parameters {
+        booleanParam(defaultValue: false, description: 'Publishes to TestServer', name: 'PUBLISH_TO_TESTSERVER')
+    }
+    
+    stages {
+        stage('Preparation') {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    ansiColor('xterm') {
+                        sh 'yarn'
+
+                        // Repos von Amazon holen
+                        // sh 'docker/_ci/run.sh --pull'
+
+                        // Docker für die Integration-Tests starten
+                        // sh 'docker/_ci/run.sh --start'
+
+                        // Hostname richtigstellen
+                        // sh 'cp -f tests/integration/test-config.linux.json tests/integration/test-config.json'
+
+                        script {
+                            // 0 - unchanged, 1 - changed
+                            // Script-Logik wird mit ! umgekehrt
+                            SRC_CHANGED = ! sh(script: "srcchanged.sh --check", returnStatus: true)
+                        }
+                    }
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                ansiColor('xterm') {
+                    sh 'yarn run lint'
+                    sh 'yarn run test'
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    ansiColor('xterm') {
+                        sh 'yarn run build:prod'
+                    }
+                }
+
+            }
+        }
+
+        stage('Deploy') {
+           when { anyOf {
+                        expression { SRC_CHANGED }
+                        expression { params.PUBLISH_TO_TESTSERVER }
+                        }
+                 }
+            steps {
+                ansiColor('xterm') {
+                    sh 'yarn run deploy && git push origin HEAD:master'
+
+                    // Zum LightSail-Server
+                    sh 'deployWebApp.sh deploy'
+                }
+            }
+        }
+    }
+
+    // post {
+    //     always {
+    //         ansiColor('xterm') {
+    //             sh 'docker/_ci/run.sh --stop'
+    //         }
+    //     }
+    // }
+
+}

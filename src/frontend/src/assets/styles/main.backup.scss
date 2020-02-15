@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700');
+@import '_normalize.css';
+@import 'reset';
+
+$header-color: #673ab7;
+$footer-color: $header-color;
+
+$block-color: rgba(#6844b7, 0.1);
+
+$header-height: 0px;
+$footer-height: 40px;
+$header-footer-padding: 10px;
+
+@import 'layout';
+@import 'debug';
+
+// https://developer.mozilla.org/en-US/docs/Web/CSS/:root
+:root {
+    --vh: 1vh;
+    --header-height: #{$header-height};
+    --footer-height: #{$footer-height};
+    --content-height: calc(var(--vh, 1vh) * 100 - calc(var(--header-height) + var(--footer-height)));
+}
+
+body {
+    background-color: #dddddd;
+    background-image: url('../images/static/background.png');
+    background-repeat: repeat;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+button:focus {
+    outline: 0;
+}
+
+.layout {
+    &__content {
+        padding: 12px;
+
+        .home,
+        .about {
+            margin-left: auto;
+            margin-right: auto;
+
+            text-align: center;
+        }
+    }
+}
+
+.layout {
+    &__content {
+        #tstest {
+            background-color: darkolivegreen;
+        }
+
+        #tsevent {
+            background-color: cornflowerblue;
+            color: white;
+        }
+
+        #tsexception {
+            background-color: orangered;
+            color: white;
+        }
+    }
+
+    &__footer {
+        color: white;
+
+        a {
+            color: white;
+            text-decoration: none;
+        }
+    }
+
+    button {
+        min-width: 30px;
+        color: #fff !important;
+        /* text-transform: uppercase; */
+        background: #ed3330;
+        //padding: 5px 10px;
+        border-radius: 3px;
+        display: inline-block;
+        border: none;
+        margin: 0 5px;
+
+        &.add {
+        }
+
+        &.subtract {
+            background-color: green;
+        }
+    }
+}
+
+.demo_images {
+    img {
+        max-height: 30px;
+        border-radius: 5px;
+        margin: 0 5px;
+    }
+}
+
+//.row {
+//    width: 100%;
+//    margin: 10px 0;
+//
+//    display: flex;
+//    flex-direction: row;
+//    flex-wrap: wrap;
+//    justify-content: space-evenly; // ⇾
+//    align-content: inherit; // ||
+//    align-items: center; // ↓
+//
+//    > .col {
+//        background-color: $block-color;
+//        margin-right: 10px;
+//        padding: 15px;
+//        border-radius: 3px;
+//    }
+//}

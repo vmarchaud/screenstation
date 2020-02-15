@@ -1,0 +1,160 @@
+$header-color: #2657ca !default;
+$footer-color: #000e2d !default;
+
+$header-footer-height: 50px !default;
+$header-footer-padding: 10px !default;
+
+.layout {
+    // position: relative;
+    
+    // per default auf none im HTML-File
+    body.loaded & {
+        opacity: 1;
+        transition: opacity 1s ease-in-out;
+    }
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-start; // ↓
+    align-content: stretch; // =
+    align-items: flex-start; // ⇾
+
+    &__header, &__content, &__footer {
+        flex-grow: 1;
+
+        width: 100%;
+        //align-self: stretch;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between; // ⇾
+        align-content: space-between; // ||
+        align-items: flex-start; // ↓
+
+        background-color: $header-color !important;
+
+        nav {
+            // full width
+            flex-grow: 1;
+
+            //max-width: 100%;
+
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start; // ⇾
+            align-content: space-between; // ||
+            align-items: flex-start; // ↓
+
+            > .spacer {
+                flex-grow: 1;
+                align-self: end;
+            }
+
+            .separator {
+                margin-left: 0.25em;
+                margin-right: 0.25em;
+            }
+
+            //display: grid;
+            //
+            //grid-template-columns: auto 1fr auto;
+            //grid-template-rows: auto;
+            //
+            //// Row-axis
+            //justify-items: left;
+            //
+            //// Col-axis
+            //align-items: center;
+        }
+    }
+
+    &__content {
+        // --content-height: calc(var(--vh, 1vh) * 100 - (#{$header-footer-height} * 2));
+
+        position: relative;
+
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start; // ⇾
+        align-content: space-between; // ||
+        align-items: flex-start; // ↓
+
+
+        // Fallback for browsers that do not support Custom Properties
+        //      https://caniuse.com/#feat=css-variables
+        //
+        height: calc(100vh - (#{$header-height} + #{$footer-height}));
+        max-height: calc(100vh - (#{$header-height} + #{$footer-height}));
+
+        height: calc(var(--content-height, 100%));
+        max-height: calc(var(--content-height, 100%));
+
+        overflow-y: scroll;
+        // padding: 10px;
+
+        > * {
+            flex-shrink: 1; flex-grow: 1;
+        }
+    }
+
+    &__header,
+    &__footer {
+        padding: $header-footer-padding;
+
+        line-height: calc(var(--header-footer-height, $header-footer-height) - (#{$header-footer-padding} * 2));
+        height: var(--header-footer-height, $header-footer-height);
+
+        color: white;
+
+        a {
+            color: white;
+            text-decoration: none;
+        }
+    }
+
+    &__footer {
+        position: absolute;
+        //// top: calc(var(--vh, 1vh) * 100 - (#{$header-footer-height}));
+        //
+        bottom: 0;
+        left: 0;
+        
+        background-color: $footer-color;
+
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between; // ⇾
+        align-content: space-between; // ||
+        align-items: center; // ↓
+
+        .version_block {
+            display: inline-block;
+            font-size: 80%;
+
+            .published {
+                font-weight: 400;
+            }
+        }
+
+        .separator {
+            margin: 0 0.25em;
+        }
+
+        .devmode {
+            font-weight: bold;
+            color: red;
+        }
+
+        .production {
+            font-weight: bold;
+            color: green;
+        }
+    }
+}

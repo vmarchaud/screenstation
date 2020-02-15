@@ -39,9 +39,9 @@ const createView = async (browser: Browser, id: string): Promise<View> => {
 
 const discoverMaster = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const browser = mdns.createBrowser(mdns.tcp('ws'))
+    const browser = mdns.createBrowser(mdns.tcp('screenstation'))
     browser.on('serviceUp', (service: mdns.Service) => {
-      if (service.name !== 'screenstation-workers') return
+      if (service.name !== 'workers') return
       browser.stop()
       return resolve(`ws://${service.host}:${service.port}`)
     })

@@ -1,0 +1,56 @@
+{
+    "compilerOptions": {
+        "strict": true,
+
+        "target": "es6",
+        "module": "esnext",
+        "moduleResolution": "node",
+
+        "sourceMap": true,
+
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "noEmitOnError": true,
+        "strictNullChecks": true,
+        "preserveConstEnums": false,
+        "removeComments": false,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+
+        "esModuleInterop": true,
+
+        "jsx": "preserve",
+        "importHelpers": true,
+
+        "baseUrl": ".",
+        "types": ["webpack-env", "jest", "node", "vuetify", "jest-extended"],
+        // Fallback wenn nach d.ts Files gesucht wird
+        // "typeRoots": ["./src/shims-vuetify.d.ts"],
+        
+        "paths": {
+            "@/*": ["src/*"]
+        },
+        "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+        "plugins": [
+            {
+                "name": "typescript-tslint-plugin"
+            }
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+
+        // Damit werden die images erkannt
+        "src/browser/**/*.ts",
+        "src/site/images/typings.d.ts",
+        "src/site/images"
+
+
+    ],
+    "exclude": ["node_modules"]
+}

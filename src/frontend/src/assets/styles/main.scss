@@ -1,0 +1,43 @@
+$header-height: 0px;
+$footer-height: 40px;
+
+// @import 'layout';
+@import 'debug';
+
+// https://developer.mozilla.org/en-US/docs/Web/CSS/:root
+:root {
+    --vh: 1vh;
+    --header-height: #{$header-height};
+    --footer-height: #{$footer-height};
+    --content-height: calc(var(--vh, 1vh) * 100 - calc(var(--header-height) + var(--footer-height)));
+}
+
+.v-content {
+    //height: calc(var(--content-height, 100%));
+    //max-height: calc(var(--content-height, 100%));
+
+    //height: calc(100vh - 40px);
+    //max-height: calc(100vh - 40px);
+
+    margin-bottom: $footer-height;
+
+    overflow-y: scroll;
+}
+
+.v-card__text {
+    > .container, > .v-item-group > .container {
+        padding: 0;
+    }
+}
+
+.round {
+    border-radius: 4px;
+}
+
+.on-hover {
+    visibility: hidden;
+
+    &.on-hover__show {
+        visibility: visible;
+    }
+}

@@ -1,0 +1,15 @@
+$header-color: #2657ca !default;
+
+html[devmode='true'] {
+    .layout__content {
+        img.logo {
+            padding: 5px 25px;
+            border-radius: 10px;
+            background-color: $header-color;
+        }
+
+        > * {
+            border: 1px solid green;
+        }
+    }
+}
