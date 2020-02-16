@@ -77,7 +77,9 @@ class WSModule extends VuexModule {
   }
 
   @Action({})
-  public async transaction (input: PacketToSend, callback: (packet: Packet) => void): Promise<Packet> {
+  public async transaction (
+    { input, callback }: { input: PacketToSend, callback: (packet: Packet) => void}
+  ): Promise<Packet> {
     return new Promise((resolve, reject) => {
       if (this.isConnected === false || websocket === null) {
         throw new Error(`Not connected`)
@@ -87,6 +89,7 @@ class WSModule extends VuexModule {
       packet.sent = new Date()
       packet.ack = false
       packet.error = undefined
+      this.logger.info(`Sending message ${input.type} (seq:${packet.sequence},tx)`)
       websocket.send(JSON.stringify(packet))
       ackStore.set(sequence, (packet: Packet) => {
         if (packet.ack === true) {

@@ -26,6 +26,12 @@ export default new Router({
       component: (): Promise<typeof import('*.vue')> =>
         import(/* webpackChunkName: "login" */ './views/Login.vue')
     },
+    {
+      path: '/:worker/:view/control',
+      name: 'control',
+      component: (): Promise<typeof import('*.vue')> =>
+        import(/* webpackChunkName: "control" */ './views/ControlView.vue')
+    },
     { path: '*', redirect: '/' }
   ]
 })

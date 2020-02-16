@@ -44,8 +44,7 @@ export class Worker {
 
   startTransaction (packet: Packet, onPacket: (packet: Packet) => void): Promise<Packet> {
     return new Promise((resolve) => {
-      packet.sequence = this.options.sequence
-      this.options.socket.send(JSON.stringify(packet))
+      this.options.socket.send(JSON.stringify(Object.assign({}, packet, { sequence: this.options.sequence })))
       this.ackStore.set(`${this.options.id}:${packet.sequence}`, (packet: Packet) => {
         return packet.ack === true ? resolve(packet) : onPacket(packet)
       })
@@ -82,7 +81,6 @@ export class WorkerManager {
     socket.once('message', async (data) => {
       try {
         const packet = await decodeIO(PacketIO, JSON.parse(data))
-        console.log(packet)
         if (packet.type !== 'HELLO') return socket.close()
         const payload = await decodeIO(HelloPayloadIO, packet.payload)
         const id = payload.name

@@ -47,7 +47,6 @@ export class UserManager {
 
   async onMessage (socket: WebSocket, data: string) {
     const packet = await decodeIO(PacketIO, JSON.parse(data))
-    console.log(JSON.stringify(packet, null, 4))
     const target = (packet.payload as any).worker as string | undefined
     const targets = target === undefined ?
       this._workerManager.clients : this._workerManager.clients.filter(client => client.name === target)
@@ -65,6 +64,7 @@ export class UserManager {
         }
         const worker = targets[0]
         const res = await worker.startTransaction(packet, (transactionPacket) => {
+          transactionPacket.sequence = packet.sequence
           socket.send(JSON.stringify(transactionPacket))
         })
         packet.payload = res.payload
