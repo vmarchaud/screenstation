@@ -8,7 +8,10 @@ import 'express-async-errors'
 import 'reflect-metadata'
 
 import async from 'async'
+import MDNS from 'multicast-dns'
+import { networkInterfaces } from 'os'
 
+import config from './config'
 import { WorkerManager } from './workerManager'
 import { UserManager } from './userManager'
 
@@ -20,35 +23,56 @@ const run = async () => {
 
   // setup connections to databases
   await async.series([
-    // (cb: Function) => {
-    //   createConnection({
-    //     type: "postgres",
-    //     host: process.env.POSTGRESQL_HOST,
-    //     database: process.env.POSTGRESQL_DB,
-    //     username: process.env.POSTGRESQL_USER,
-    //     password: process.env.POSTGRESQL_PASSWORD,
-    //     entities: [],
-    //     synchronize: process.env.NODE_ENV !== 'production',
-    //     logging: false
-    //   }).then(conn => {
-    //     modelRepositories = {}
-    //     return cb()
-    //   })
-    // },
-    // (cb: Function) => {
-    //   const redisClient = new Redis({
-    //     port: parseInt(process.env.REDIS_PORT || '', 10),
-    //     host: process.env.REDIS_HOST
-    //   })
-    //   redisClient.on('ready', () => {
-    //     redis = redisClient
-    //     return cb(null, redisClient)
-    //   })
-    //   redisClient.once('error', (err) => cb(err))
-    // }
     async () => {
       await manager.init()
       await userManager.init(manager)
+      const interfaces = networkInterfaces()
+      const externalInterface = Object.keys(interfaces).find(name => {
+        return interfaces[name].every(address => address.internal === false)
+      })
+      const address = externalInterface && interfaces[externalInterface] ? interfaces[externalInterface][0].address : '127.0.0.1'
+      const mdns = MDNS()
+      mdns.on('query', (query) => {
+        if (query.questions.length === 0) return
+        const domain = query.questions[0].name
+        switch (domain) {
+          case 'api.screenstation.local': {
+            mdns.respond({
+              answers: [{
+                name: 'api.screenstation.local',
+                type: 'A',
+                data: address
+              }]
+            })
+            break
+          }
+          case 'screenstation.local': {
+            mdns.respond({
+              answers: [{
+                name: 'screenstation.local',
+                type: 'A',
+                data: address
+              }]
+            })
+            break
+          }
+          case 'workers.screenstation.local': {
+            mdns.respond({
+              answers: [{
+                name: 'workers.screenstation.local',
+                type: 'SRV',
+                data: {
+                  port: config.WORKER_WEBSOCKET_PORT,
+                  weigth: 0,
+                  priority: 10,
+                  target: address
+                }
+              }]
+            })
+            break
+          }
+        }
+      })
     }
   ])
 }

@@ -4,8 +4,6 @@ import * as http from 'http'
 import { waitWebsocket } from '../shared/utils/common'
 import { decodeIO } from '../shared/utils/decode'
 import { PacketIO, HelloPayloadIO, Packet } from '../shared/types/packets'
-import mdns from 'mdns'
-import { networkInterfaces } from 'os'
 
 export type WorkerOptions = {
   id: string,
@@ -66,15 +64,6 @@ export class WorkerManager {
     this._server.on('connection', this.onConnection.bind(this))
     await waitWebsocket(this._server, 'listening')
     console.log(`Worker Websocket server listening on port ${config.WORKER_WEBSOCKET_PORT}`)
-    const interfaces = networkInterfaces()
-    const externalInterface = Object.keys(interfaces).find(name => {
-      return interfaces[name].every(address => address.internal === false)
-    })
-    const adv = mdns.createAdvertisement(mdns.tcp('screenstation'), config.WORKER_WEBSOCKET_PORT, {
-      name: 'workers',
-      networkInterface: externalInterface
-    })
-    adv.start()
   }
 
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {

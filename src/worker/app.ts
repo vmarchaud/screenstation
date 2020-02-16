@@ -14,6 +14,7 @@ import {Page, Browser} from 'puppeteer'
 import mdns from 'mdns'
 import { sleep } from '../shared/utils/common'
 import of from '../shared/utils/of'
+import MDNS from 'multicast-dns'
 
 const views: View[] = []
 const createView = async (browser: Browser, id: string): Promise<View> => {
@@ -39,14 +40,13 @@ const createView = async (browser: Browser, id: string): Promise<View> => {
 
 const discoverMaster = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const browser = mdns.createBrowser(mdns.tcp('screenstation'))
-    browser.on('serviceUp', (service: mdns.Service) => {
-      if (service.name !== 'workers') return
-      browser.stop()
-      return resolve(`ws://${service.host}:${service.port}`)
+    const mdns = MDNS()
+    mdns.on('response', (response) => {
+      const srv = response.answers[0]
+      mdns.destroy()
+      return resolve(`ws://${srv.data.target}:${srv.data.port}`)
     })
-    browser.on('error', console.error)
-    browser.start()
+    mdns.query('workers.screenstation.local', 'SRV')
   })
 }
 
