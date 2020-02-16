@@ -4,7 +4,7 @@
             <v-col class="version_block align-end">
                 <span class="version">Version {{ version }}</span>
                 <span class="separator mx-1">/</span>
-                <span class="published">{{ published }}</span>
+                <span class="published">{{ devmode }}</span>
             </v-col>
         </v-row>
     </v-footer>
@@ -23,9 +23,9 @@ export default class AppFooter extends Vue {
     return process.env.VUE_APP_VERSION || '<process.env.VUE_APP_VERSION = undefined>'
   }
 
-  public get devmode (): boolean {
+  public get devmode (): string {
     const devMode = process.env.VUE_APP_DEV_MODE || '<process.env.VUE_APP_DEV_MODE = undefined>'
-    return devMode === 'true'
+    return devMode === 'true' ? 'development' : 'production'
   }
 }
 </script>

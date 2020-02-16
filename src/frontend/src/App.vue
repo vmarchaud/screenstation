@@ -1,14 +1,14 @@
 <template>
     <v-app id="app" class="layout--off" color="gray-lighten2">
       <Loader :value="loading" message="Connecting to Screenstation .."></Loader>
-      <v-app-bar app color="indigo" dark clipped-left>
+      <v-app-bar app color="primary" dark clipped-left>
           <router-link to="/" class="to-home white--text">
               <v-toolbar-title class="title">ScreenStation</v-toolbar-title>
           </router-link>
           <AppHeader></AppHeader>
       </v-app-bar>
       <v-content>
-          <router-view />
+        <router-view />
       </v-content>
       <AppFooter></AppFooter>  
     </v-app>
@@ -41,6 +41,11 @@ export default class App extends Vue {
         text-decoration: none;
     }
 }
+
+.v-content {
+  overflow-y: auto
+}
+
 .dialog.centered-dialog,
   .v-dialog.centered-dialog
  {

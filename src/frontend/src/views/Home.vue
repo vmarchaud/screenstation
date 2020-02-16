@@ -1,11 +1,11 @@
 <template>
-    <v-container class="home">
-        <v-row>
-            <v-col cols="12" align="center" justify="start">
-                <ViewList></ViewList>
-            </v-col>
-        </v-row>
-    </v-container>
+  <v-container class="home">
+    <v-row>
+      <v-col cols="12" align="center" justify="start">
+        <ViewList></ViewList>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">

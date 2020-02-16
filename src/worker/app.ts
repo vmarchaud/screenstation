@@ -172,7 +172,10 @@ const init = async () => {
           format: 'jpeg',
           quality: 40
         })
-        packet.payload = { screenshot: (screenshot as any).data }
+        packet.payload = {
+          screenshot: (screenshot as any).data,
+          currentURL: view.page.url()
+        }
         break
       }
       case PayloadType.CAST_VIEW: {

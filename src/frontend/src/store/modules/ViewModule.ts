@@ -40,8 +40,23 @@ class WorkerModule extends VuexModule {
     return viewsWithScreenshot
   }
 
+  @Action({ commit: '_setViewContent' })
+  public async fetchCurrentContent (view: View) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.GET_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    const payload = (res.payload as any)[0]
+    view.screenshot = `data:image/png;base64,${payload.screenshot}`
+    view.currentURL = payload.currentURL ?? view.currentURL
+    return view
+  }
+
   @Action({})
-  public async setUrl (url: string, view: View) {
+  public async setUrl ({ url, view }: { url: string, view: View }) {
     const res = await WebsocketModule.send({
       type: PayloadType.SHOW,
       payload: {
@@ -50,12 +65,25 @@ class WorkerModule extends VuexModule {
         url
       }
     })
-    console.log(res.payload)
+    void this.fetchCurrentContent(view)
   }
 
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views
+  }
+
+  @Mutation
+  private _setViewContent (view: View): void {
+    this._views.forEach(_view => {
+      if (_view.id !== view.id || _view.worker !== view.worker) return
+      if (view.currentURL) {
+        _view.currentURL = view.currentURL
+      }
+      if (view.screenshot) {
+        _view.screenshot = view.screenshot
+      }
+    })
   }
 }
 
