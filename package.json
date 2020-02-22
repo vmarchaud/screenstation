@@ -7,6 +7,7 @@
     "dev-api": "ts-node-dev --respawn --transpileOnly src/api/app.ts"
   },
   "dependencies": {
+    "@rlvt/io-ts": "^2.1.1",
     "@smcloudstore/aws-s3": "^0.2.1",
     "async": "^3.1.0",
     "axios": "^0.18.0",

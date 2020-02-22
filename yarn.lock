@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@rlvt/io-ts@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@rlvt/io-ts/-/io-ts-2.1.1.tgz#1d8a5232324cff507eb30c4d90553e6df98e3fda"
+  integrity sha512-QS1vI+XZi+fqOJwUWNYYf4WXTkfCCULKLhipDxVvCccLRik+bgFzSHFd+yCMUerRIaN59bSeQnShhzHcJtwRsQ==
+
 "@smcloudstore/aws-s3@^0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@smcloudstore/aws-s3/-/aws-s3-0.2.1.tgz#0eee94690b63ce57de69439859d132c5ea8552a5"

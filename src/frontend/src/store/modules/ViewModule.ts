@@ -58,7 +58,7 @@ class WorkerModule extends VuexModule {
   @Action({})
   public async setUrl ({ url, view }: { url: string, view: View }) {
     const res = await WebsocketModule.send({
-      type: PayloadType.SHOW,
+      type: PayloadType.SET_VIEW_URL,
       payload: {
         worker: view.worker,
         view: view.id,

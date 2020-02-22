@@ -69,6 +69,7 @@ export class WorkerManager {
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {
     socket.once('message', async (data) => {
       try {
+        console.log(data)
         const packet = await decodeIO(PacketIO, JSON.parse(data))
         if (packet.type !== 'HELLO') return socket.close()
         const payload = await decodeIO(HelloPayloadIO, packet.payload)
@@ -81,6 +82,8 @@ export class WorkerManager {
           ackStore: this._waitAcks
         })
         console.log(`New client ${id} is connected`)
+        packet.ack = true
+        socket.send(JSON.stringify(packet))
         socket.on('message', this.onMessage.bind(this, client))
         socket.on('error', (err) => {
           console.error(`Error with client ${id}`, err)
