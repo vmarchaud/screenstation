@@ -3,20 +3,27 @@ import * as t from 'io-ts'
 import { DateIO } from '../utils/io-types'
 
 export enum PayloadType {
+  // meta packets
   HELLO = 'HELLO',
-  SET_VIEW_URL = 'SET_VIEW_URL',
   STOP = 'STOP',
   RESTART = 'RESTART',
+  // cast plugin
   LIST_SINKS = 'LIST_SINKS',
   CAST_VIEW = 'CAST_VIEW',
+  // view plugins
+  SET_VIEW_URL = 'SET_VIEW_URL',
   GET_VIEW = 'GET_VIEW',
   CREATE_VIEW = 'CREATE_VIEW',
   LIST_VIEW = 'LIST_VIEW',
   DELETE_VIEW = 'DELETE_VIEW',
   SELECT_VIEW = 'SELECT_VIEW',
+  // stream plugin
   START_STREAM_VIEW = 'START_STREAM_VIEW',
   EVENT_STREAM_VIEW = 'EVENT_STREAM_VIEW',
   STOP_STREAM_VIEW = 'STOP_STREAM_VIEW',
+  // refresh plugin
+  SET_REFRESH_VIEW = 'SET_REFRESH_VIEW',
+  GET_REFRESH_VIEW = 'GET_REFRESH_VIEW'
 }
 
 export const PacketDescriptorIO = t.type({

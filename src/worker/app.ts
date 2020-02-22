@@ -29,9 +29,11 @@ export class Worker {
     },
     {
       path: './plugins/cast/index'
+    },
+    {
+      path: './plugins/refresh/index'
     }
   ]
-  private plugins: Plugin[] = []
   private packetHandlers: Map<string, Plugin> = new Map()
   
   async init () {
@@ -48,7 +50,8 @@ export class Worker {
       browser: await this.getBrowser(),
       views: [],
       socket: ws,
-      workerName: config.NAME
+      workerName: config.NAME,
+      plugins: []
     }
     console.log('Loading plugins ...')
     for (let pluginToLoad of this.pluginsToLoad) {
@@ -63,7 +66,7 @@ export class Worker {
         this.packetHandlers.set(packet.type, plugin)
       }
       console.log(`Plugin ${meta.displayName} has been enabled`)
-      this.plugins.push(plugin)
+      this.store.plugins.push(plugin)
     }
     console.log(`Listening for new packets`)
     ws.on('message', async (data) => {

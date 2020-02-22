@@ -9,7 +9,8 @@ export type WorkerStore = {
   views: View[],
   browser: Browser,
   workerName: string,
-  socket: WebsocketTransport
+  socket: WebsocketTransport,
+  plugins: Plugin[]
 }
 
 export const PluginMetadataIO = t.type({
