@@ -109,6 +109,19 @@ class WorkerModule extends VuexModule {
     void this.fetchCurrentContent(view)
   }
 
+  @Action({ commit: '_setViewRefresh' })
+  public async setRefreshOnView ({ refresh, view }: { refresh: number, view: View }) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.SET_REFRESH_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id,
+        refreshEvery: refresh
+      }
+    })
+    return { refreshEvery: refresh, view }
+  }
+
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views
