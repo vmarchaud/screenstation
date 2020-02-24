@@ -121,6 +121,7 @@ export class ViewPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
+        view.currentURL = payload.url
         await view.page.goto(payload.url)
         break
       }
