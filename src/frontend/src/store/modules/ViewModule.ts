@@ -37,6 +37,9 @@ class WorkerModule extends VuexModule {
       view.screenshot = `data:image/png;base64,${screenshot}`
       return view
     }))
+    viewsWithScreenshot.forEach(view => {
+      void this.fetchViewCapabilities(view)
+    })
     return viewsWithScreenshot
   }
 
@@ -53,6 +56,44 @@ class WorkerModule extends VuexModule {
     view.screenshot = `data:image/png;base64,${payload.screenshot}`
     view.currentURL = payload.currentURL ?? view.currentURL
     return view
+  }
+
+  @Action({ commit: '_setViewCapabilities' })
+  public async fetchViewCapabilities (view: View): Promise<{ view: string, capabilities: ViewCapabilities }> {
+    const res = await WebsocketModule.send({
+      type: PayloadType.LIST_PLUGINS,
+      payload: {
+        worker: view.worker
+      }
+    })
+    const plugins = (res.payload as any)[0].plugins
+    const capabilities: ViewCapabilities = {
+      refresh: plugins.some((plugin: any) => plugin.metadata.id === 'core/refresh'),
+      cast: plugins.some((plugin: any) => plugin.metadata.id === 'core/cast'),
+      stream: plugins.some((plugin: any) => plugin.metadata.id === 'core/stream')
+    }
+
+    if (capabilities.refresh) {
+      void this.fetchViewRefresh(view)
+    }
+
+    return {
+      view: view.id,
+      capabilities
+    }
+  }
+
+  @Action({ commit: '_setViewRefresh' })
+  public async fetchViewRefresh (view: View) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.GET_REFRESH_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    const payload = (res.payload as any)[0]
+    return { refreshEvery: payload.refresh.refreshEvery, view }
   }
 
   @Action({})
@@ -85,13 +126,39 @@ class WorkerModule extends VuexModule {
       }
     })
   }
+
+  @Mutation
+  private _setViewRefresh (payload: { refreshEvery: number, view: View}): void {
+    if (payload.view.refresh === undefined) {
+      payload.view.refresh = { refreshEvery: payload.refreshEvery }
+    } else {
+      payload.view.refresh.refreshEvery = payload.refreshEvery
+    }
+  }
+
+  @Mutation
+  private _setViewCapabilities (payload: { view: string, capabilities: ViewCapabilities }): void {
+    const view = this._views.find(_view => _view.id === payload.view)
+    if (view === undefined) return
+    view.capabilities = payload.capabilities
+  }
+}
+
+export type ViewCapabilities = {
+  refresh: boolean,
+  cast: boolean,
+  stream: boolean
 }
 
 export type View = {
   id: string
   worker: string
   currentURL?: string
-  screenshot?: string
+  screenshot?: string,
+  refresh?: {
+    refreshEvery: number
+  },
+  capabilities: ViewCapabilities
 }
 
 export default getModule(WorkerModule)
