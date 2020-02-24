@@ -24,6 +24,13 @@
           >
             Set URL
           </v-btn>
+          <v-btn
+            color="blue"
+            text
+            @click="openSetRefresh(view)"
+          >
+            Set refresh interval
+          </v-btn>
           <router-link :to="`${view.worker}/${view.id}/control`">
              <v-btn
               color="orange"
@@ -33,67 +40,31 @@
             </v-btn>
           </router-link>
         </v-card-actions>
+        <SetViewUrl :view="view" ></SetViewUrl>
+        <SetRefreshUrl :view="view" ></SetRefreshUrl>
       </v-card>
-      <v-dialog max-width="600px" :value="isSettingUrl" v-on:click:outside="isSettingUrl = false">
-        <v-card>
-          <v-form @submit="setUrlForActiveView()">
-            <v-card-title>
-              <span class="headline">Set URL on this view</span>
-            </v-card-title>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-text-field
-                    class="ma-5"
-                    v-model="currentURL"
-                    required
-                  ></v-text-field>
-                </v-row>
-              </v-container>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn
-                color="primary darken-1"
-                text
-                :disabled="selectedView && currentURL === selectedView.currentURL"
-                @click="setUrlForActiveView()"
-              >Set</v-btn>
-            </v-card-actions>
-          </v-form>
-        </v-card>
-      </v-dialog>
     </v-container>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import ViewModule, { View } from '../store/modules/ViewModule'
+import SetViewUrl from './SetViewUrl.vue'
+import SetRefreshUrl from './SetRefreshView.vue'
 
-@Component
+@Component({ components: { SetViewUrl, SetRefreshUrl } })
 export default class ViewList extends Vue {
-
-  public isSettingUrl: boolean = false
-  public selectedView: View | null = null
-  public currentURL: string = ''
 
   public get views () {
     return ViewModule.views
   }
 
   async openSetURL (view: View) {
-    this.selectedView = view
-    this.currentURL = view.currentURL ?? ''
-    this.isSettingUrl = true
+    this.$root.$emit('onSetViewUrl', view.id)
   }
 
-  async setUrlForActiveView () {
-    const view = this.selectedView
-    if (view === null || this.currentURL === view.currentURL) return
-    await ViewModule.setUrl({ view, url: this.currentURL })
-    this.currentURL = ''
-    this.selectedView = null
-    this.isSettingUrl = false
+  async openSetRefresh (view: View) {
+    this.$root.$emit('onSetRefresh', view.id)
   }
 }
 </script>
