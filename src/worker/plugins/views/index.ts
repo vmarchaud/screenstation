@@ -30,8 +30,9 @@ enum PayloadType {
 export class ViewPlugin implements Plugin {
 
   static readonly metadata: PluginMetadata = {
+    id: 'core/views',
     version: '0.1.0',
-    displayName: 'core/views',
+    displayName: 'Chrome views plugin',
     installedAt: new Date()
   }
 

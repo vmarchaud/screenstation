@@ -25,8 +25,9 @@ enum PayloadType {
 export class StreamPlugin implements Plugin {
 
   static readonly metadata: PluginMetadata = {
+    id: 'core/stream',
     version: '0.1.0',
-    displayName: 'core/stream',
+    displayName: 'Remotely access views',
     installedAt: new Date()
   }
 

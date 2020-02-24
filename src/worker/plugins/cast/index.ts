@@ -22,8 +22,9 @@ enum PayloadType {
 export class CastPlugin implements Plugin {
 
   static readonly metadata: PluginMetadata = {
+    id: 'core/cast',
     version: '0.1.0',
-    displayName: 'core/cast',
+    displayName: 'Cast view to chromecast',
     installedAt: new Date()
   }
 

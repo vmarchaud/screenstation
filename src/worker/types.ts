@@ -14,6 +14,7 @@ export type WorkerStore = {
 }
 
 export const PluginMetadataIO = t.type({
+  id: t.string,
   displayName: t.string,
   installedAt: DateIO,
   version: t.string

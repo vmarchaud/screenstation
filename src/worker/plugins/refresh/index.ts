@@ -31,8 +31,9 @@ enum PayloadType {
 export class RefreshPlugin implements Plugin {
 
   static readonly metadata: PluginMetadata = {
+    id: 'core/refresh',
     version: '0.1.0',
-    displayName: 'core/skeleton',
+    displayName: 'Auto-refresh view',
     installedAt: new Date()
   }
 
@@ -100,8 +101,14 @@ export class RefreshPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const entry = this.config.entries.find(entry => entry.view === payload.view)
-        packet.payload = { entry }
+        let entry = this.config.entries.find(entry => entry.view === payload.view)
+        if (entry === undefined) {
+          entry = {
+            refreshEvery: 0,
+            view: payload.view
+          }
+        }
+        packet.payload = { refresh: entry }
         break
       }
     }

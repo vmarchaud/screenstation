@@ -25,6 +25,9 @@ export class Worker {
       path: './plugins/views/index'
     },
     {
+      path: './plugins/meta/index'
+    },
+    {
       path: './plugins/stream/index'
     },
     {

@@ -23,7 +23,9 @@ export enum PayloadType {
   STOP_STREAM_VIEW = 'STOP_STREAM_VIEW',
   // refresh plugin
   SET_REFRESH_VIEW = 'SET_REFRESH_VIEW',
-  GET_REFRESH_VIEW = 'GET_REFRESH_VIEW'
+  GET_REFRESH_VIEW = 'GET_REFRESH_VIEW',
+  // meta plugin
+  LIST_PLUGINS = 'LIST_PLUGINS'
 }
 
 export const PacketDescriptorIO = t.type({
