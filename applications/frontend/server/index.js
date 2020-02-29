@@ -3,10 +3,11 @@ const express = require('express')
 const morgan = require('morgan')
 const MDNS = require('multicast-dns')
 const { networkInterfaces } = require('os')
+const path = require('path')
 
 const app = express()
 app.use(morgan('tiny'))
-app.use(express.static('dist'))
+app.use(express.static(path.resolve(__dirname, '../dist')))
 const port = parseInt(process.env.FRONTEND_PORT || '80', 10)
 const mdns = MDNS()
 app.listen(port, () => {
@@ -28,7 +29,7 @@ app.listen(port, () => {
           name: 'screenstation.local',
           type: 'A',
           ttl: 60,
-          data: '127.0.0.1'
+          data: address
         }]
       })
     }

@@ -1,0 +1,21 @@
+{
+  "name": "screenstation-frontend-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "compile": "pkg --out-path ../bins package.json"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "morgan": "^1.9.1",
+    "multicast-dns": "^7.2.1"
+  },
+  "devDependencies": {
+    "pkg": "^4.4.3"
+  },
+  "bin": "./index.js",
+  "pkg": {
+    "assets": [ "../dist/**/*" ]
+  }
+}

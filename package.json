@@ -5,7 +5,11 @@
   "scripts": {
     "dev-worker": "cd applications/worker && yarn dev",
     "dev-api": "cd applications/api && yarn dev",
-    "dev-front": "cd applications/frontend && yarn start"
+    "dev-front": "cd applications/frontend && yarn start",
+    "build-worker": "cd applications/worker && yarn build && yarn compile",
+    "build-api": "cd applications/api && yarn build && yarn compile",
+    "build-front": "cd applications/frontend && yarn build:prod && yarn compile",
+    "build": "yarn build-worker && yarn build-api && yarn build-front"
   },
   "devDependencies": {
     "lerna": "^3.20.2"
