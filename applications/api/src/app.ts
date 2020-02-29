@@ -39,16 +39,6 @@ const run = async () => {
             })
             break
           }
-          case 'screenstation.local': {
-            mdns.respond({
-              answers: [{
-                name: 'screenstation.local',
-                type: 'A',
-                data: address
-              }]
-            })
-            break
-          }
           case 'workers.screenstation.local': {
             mdns.respond({
               answers: [{
