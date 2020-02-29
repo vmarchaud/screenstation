@@ -33,7 +33,7 @@ class WSModule extends VuexModule {
   public get isConnected (): boolean {
     return websocket?.readyState === WebSocket.OPEN
   }
-  private address: string = 'ws://localhost:8000'
+  private address: string = 'ws://api-screenstation.local:8000'
 
   @Action({})
   public async connect (): Promise<boolean> {

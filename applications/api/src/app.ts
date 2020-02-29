@@ -29,11 +29,12 @@ const run = async () => {
         if (query.questions.length === 0) return
         const domain = query.questions[0].name
         switch (domain) {
-          case 'api.screenstation.local': {
+          case 'api-screenstation.local': {
             mdns.respond({
               answers: [{
-                name: 'api.screenstation.local',
+                name: 'api-screenstation.local',
                 type: 'A',
+                ttl: 60,
                 data: address
               }]
             })
@@ -47,6 +48,7 @@ const run = async () => {
                 data: {
                   port: config.WORKER_WEBSOCKET_PORT,
                   weigth: 0,
+                  ttl: 60,
                   priority: 10,
                   target: address
                 }

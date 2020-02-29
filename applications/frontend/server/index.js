@@ -27,6 +27,7 @@ app.listen(port, () => {
         answers: [{
           name: 'screenstation.local',
           type: 'A',
+          ttl: 60,
           data: '127.0.0.1'
         }]
       })
