@@ -68,3 +68,5 @@ volumes/
 .env.production
 
 *.gcp_keys
+
+build/

@@ -1,6 +1,6 @@
 
 import * as t from 'io-ts'
-import { SinkIO } from '../../../shared/types/sink'
+import { SinkIO } from '../../../../shared/types/sink'
 
 export const ListSinkPayloadIO = t.type({
   sinks: t.array(SinkIO),

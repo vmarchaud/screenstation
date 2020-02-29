@@ -1,42 +1,26 @@
-
-import customEnv from 'custom-env'
-customEnv.env(process.env.NODE_ENV)
-
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import config from './config'
-import { decodeIO } from '../shared/utils/decode'
-import { PacketIO, Packet } from '../shared/types/packets'
-import { WebsocketTransport } from '../shared/utils/ws'
-import of from '../shared/utils/of'
+import { decodeIO } from '../../shared/utils/decode'
+import { PacketIO, Packet } from '../../shared/types/packets'
+import { WebsocketTransport } from '../../shared/utils/ws'
+import of from '../../shared/utils/of'
 import MDNS from 'multicast-dns'
 import { WorkerStore, PluginToLoad, Plugin } from './types'
 
-process.env.GOOGLE_API_KEY = "no"
-process.env.GOOGLE_DEFAULT_CLIENT_ID = "no"
-process.env.GOOGLE_DEFAUqLT_CLIENT_SECRET = "no"
+import * as CorePlugins from './plugins'
+
+process.env.GOOGLE_API_KEY = 'no'
+process.env.GOOGLE_DEFAULT_CLIENT_ID = 'no'
+process.env.GOOGLE_DEFAUqLT_CLIENT_SECRET = 'no'
 
 export class Worker {
 
   private store: WorkerStore
 
-  private pluginsToLoad: PluginToLoad[] = [
-    {
-      path: './plugins/views/index'
-    },
-    {
-      path: './plugins/meta/index'
-    },
-    {
-      path: './plugins/stream/index'
-    },
-    {
-      path: './plugins/cast/index'
-    },
-    {
-      path: './plugins/refresh/index'
-    }
-  ]
+  private corePlugins: Plugin[] = Object.values(CorePlugins)
+
+  private pluginsToLoad: PluginToLoad[] = []
   private packetHandlers: Map<string, Plugin> = new Map()
   
   async init () {
@@ -57,18 +41,31 @@ export class Worker {
       plugins: []
     }
     console.log('Loading plugins ...')
+    for (let plugin of this.corePlugins) {
+      const meta = await plugin.getMetadata()
+      const packets = await plugin.getPacketTypes()
+      console.log(`Found plugin ${meta.id} (${meta.version}), enabling ..`)
+      await plugin.init(this.store)
+      console.log(`Registering packet ${packets.map(pkt => pkt.type).join(',')} for plugin ${meta.id}`)
+      for (let packet of packets) {
+        this.packetHandlers.set(packet.type, plugin)
+      }
+      console.log(`Plugin ${meta.id} has been enabled`)
+      this.store.plugins.push(plugin)
+    }
+    console.log('Loading plugins ...')
     for (let pluginToLoad of this.pluginsToLoad) {
       const exported = require(pluginToLoad.path)
       const plugin = exported.default as Plugin
       const meta = await plugin.getMetadata()
       const packets = await plugin.getPacketTypes()
-      console.log(`Found plugin ${meta.displayName} (${meta.version}) at ${pluginToLoad.path}, enabling ..`)
+      console.log(`Found plugin ${meta.id} (${meta.version}) at ${pluginToLoad.path}, enabling ..`)
       await plugin.init(this.store)
-      console.log(`Registering packet ${packets.map(pkt => pkt.type).join(',')} for plugin ${meta.displayName}`)
+      console.log(`Registering packet ${packets.map(pkt => pkt.type).join(',')} for plugin ${meta.id}`)
       for (let packet of packets) {
         this.packetHandlers.set(packet.type, plugin)
       }
-      console.log(`Plugin ${meta.displayName} has been enabled`)
+      console.log(`Plugin ${meta.id} has been enabled`)
       this.store.plugins.push(plugin)
     }
     console.log(`Listening for new packets`)
@@ -130,7 +127,11 @@ export class Worker {
   }
 
   private async getBrowser () {
-    puppeteer.use(StealthPlugin())
+    const evasions = StealthPlugin().availableEvasions
+    evasions.delete('')
+    puppeteer.use(StealthPlugin({
+      enabledEvasions: evasions
+    }))
     const browser = await puppeteer.launch({
       headless: false,
       ignoreDefaultArgs: true,

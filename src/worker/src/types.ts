@@ -1,9 +1,9 @@
 import * as t from 'io-ts'
-import { View } from '../shared/types/view'
+import { View } from '../../shared/types/view'
 import { Browser } from 'puppeteer'
-import { WebsocketTransport } from '../shared/utils/ws'
-import { DateIO } from '../shared/utils/io-types'
-import { PacketDescriptor, Packet } from '../shared/types/packets'
+import { WebsocketTransport } from '../../shared/utils/ws'
+import { DateIO } from '../../shared/utils/io-types'
+import { PacketDescriptor, Packet } from '../../shared/types/packets'
 
 export type WorkerStore = {
   views: View[],

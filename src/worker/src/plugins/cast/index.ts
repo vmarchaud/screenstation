@@ -1,14 +1,14 @@
 import * as t from 'io-ts'
 import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
-import { Packet } from '../../../shared/types/packets'
+import { Packet } from '../../../../shared/types/packets'
 import { promises } from 'fs'
 import * as path from 'path'
-import { decodeIO } from '../../../shared/utils/decode'
+import { decodeIO } from '../../../../shared/utils/decode'
 import {
   CastViewPayloadIO
 } from './io-types'
-import { Sink } from '../../../shared/types/sink'
+import { Sink } from '../../../../shared/types/sink'
 
 const CastPluginConfigIO = t.type({})
 

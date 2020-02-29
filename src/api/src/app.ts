@@ -1,12 +1,5 @@
 'use strict'
 
-// load env
-import customEnv from 'custom-env'
-customEnv.env(process.env.NODE_ENV)
-// load patching modules
-import 'express-async-errors'
-import 'reflect-metadata'
-
 import async from 'async'
 import MDNS from 'multicast-dns'
 import { networkInterfaces } from 'os'

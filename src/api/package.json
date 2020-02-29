@@ -1,0 +1,27 @@
+{
+  "name": "screenstation-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpileOnly src/app.ts"
+  },
+  "dependencies": {
+    "@rlvt/io-ts": "^2.1.1",
+    "async": "^3.1.0",
+    "debug": "^4.1.1",
+    "fp-ts": "^2.0.5",
+    "http-errors": "^1.7.2",
+    "io-ts": "^2.0.1",
+    "io-ts-reporters": "^1.0.0",
+    "multicast-dns": "^7.2.1",
+    "uuid": "^3.3.2",
+    "ws": "^7.2.1"
+  },
+  "devDependencies": {
+    "@types/mdns": "^0.0.33",
+    "@types/uuid": "^3.4.5",
+    "@types/ws": "^6.0.4",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "typescript": "^3.7.4"
+  }
+}

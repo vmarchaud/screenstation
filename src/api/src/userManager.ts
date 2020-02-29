@@ -1,10 +1,10 @@
 import WebSocket from 'ws'
 import config from './config'
 import * as http from 'http'
-import { waitWebsocket } from '../shared/utils/common'
-import { decodeIO } from '../shared/utils/decode'
+import { waitWebsocket } from '../../shared/utils/common'
+import { decodeIO } from '../../shared/utils/decode'
 import { WorkerManager } from './workerManager'
-import { PacketIO, PayloadType } from '../shared/types/packets'
+import { PacketIO, PayloadType } from '../../shared/types/packets'
 
 export type Client = {
   socket: WebSocket

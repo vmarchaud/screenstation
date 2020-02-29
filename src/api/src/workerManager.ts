@@ -1,9 +1,9 @@
 import WebSocket from 'ws'
 import config from './config'
 import * as http from 'http'
-import { waitWebsocket } from '../shared/utils/common'
-import { decodeIO } from '../shared/utils/decode'
-import { PacketIO, HelloPayloadIO, Packet } from '../shared/types/packets'
+import { waitWebsocket } from '../../shared/utils/common'
+import { decodeIO } from '../../shared/utils/decode'
+import { PacketIO, HelloPayloadIO, Packet } from '../../shared/types/packets'
 
 export type WorkerOptions = {
   id: string,
