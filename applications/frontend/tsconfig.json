@@ -48,7 +48,7 @@
     // Damit werden die images erkannt
     "src/browser/**/*.ts",
     "src/site/images/typings.d.ts",
-    "src/site/images"
+    "src/site/images", "server/index.js"
   ],
   "exclude": [
     "node_modules"

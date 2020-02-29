@@ -7,10 +7,15 @@
     "tc": "tsc --noEmit",
     "build": "vue-cli-service build --mode development",
     "build:prod": "vue-cli-service build --mode production",
-    "deploy": "yarn version --new-version patch"
+    "deploy": "yarn version --new-version patch",
+    "compile": "pkg ./server/index.js --platform linux --out-path ./bins"
   },
   "dependencies": {
     "@mmit/logging": "^0.1.5",
+    "@types/morgan": "^1.9.0",
+    "express": "^4.17.1",
+    "express-static": "^1.2.6",
+    "morgan": "^1.9.1",
     "uuid": "^3.4.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.2",
@@ -31,6 +36,7 @@
     "@vue/cli-service": "^4.2.2",
     "@vue/test-utils": "1.0.0-beta.31",
     "moment": "^2.24.0",
+    "pkg": "^4.4.3",
     "sass": "^1.25.0",
     "sass-loader": "8.0.2",
     "tslint": "^6.0.0",
@@ -40,5 +46,8 @@
     "vue-template-compiler": "^2.6.11",
     "vuex-class": "^0.3.2",
     "vuex-module-decorators": "^0.16.1"
+  },
+  "pkg": {
+    "assets": "dist/**/*"
   }
 }
