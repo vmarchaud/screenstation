@@ -3,6 +3,7 @@ import { Action, getModule, Module, Mutation, VuexModule } from 'vuex-module-dec
 import store from '../index'
 import { PayloadType } from '../../../../shared/types/packets'
 import WebsocketModule from './WebsocketModule'
+import { Sink } from '../../../../shared/types/sink'
 
 @Module({ dynamic: true, namespaced: true, name: WorkerModule.NAME, store })
 class WorkerModule extends VuexModule {
@@ -39,6 +40,9 @@ class WorkerModule extends VuexModule {
     }))
     viewsWithScreenshot.forEach(view => {
       void this.fetchViewCapabilities(view)
+      // @ts-ignore
+      view.capabilities = {}
+      view.sinks = []
     })
     return viewsWithScreenshot
   }
@@ -76,6 +80,9 @@ class WorkerModule extends VuexModule {
     if (capabilities.refresh) {
       void this.fetchViewRefresh(view)
     }
+    if (capabilities.cast) {
+      void this.fetchViewSinks(view)
+    }
 
     return {
       view: view.id,
@@ -94,6 +101,26 @@ class WorkerModule extends VuexModule {
     })
     const payload = (res.payload as any)[0]
     return { refreshEvery: payload.refresh.refreshEvery, view }
+  }
+
+  @Action({ commit: '_setViewSinks' })
+  public async fetchViewSinks (view: View) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.LIST_SINKS,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    const payload = (res.payload as any)[0]
+    const currentlyUsed = payload.currentlyUsed
+    for (let usedSink of currentlyUsed) {
+      this.context.commit('_setViewSinkInUse', {
+        view: usedSink[1],
+        sink: usedSink[0]
+      })
+    }
+    return { sinks: payload.sinks, view }
   }
 
   @Action({})
@@ -120,6 +147,31 @@ class WorkerModule extends VuexModule {
       }
     })
     return { refreshEvery: refresh, view }
+  }
+
+  @Action({ commit: '_setViewSinkInUse' })
+  public async setSinkForView ({ sink, view }: { sink: Sink, view: View }) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.SELECT_SINK,
+      payload: {
+        worker: view.worker,
+        view: view.id,
+        sink: sink.name
+      }
+    })
+    return { view: view.id, sink: sink.name }
+  }
+
+  @Action({ commit: '_setViewSinkInUse' })
+  public async stopSinkForView ({ view }: { view: View }) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.STOP_SINK,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    return { view: view.id, sink: undefined }
   }
 
   @Mutation
@@ -150,10 +202,22 @@ class WorkerModule extends VuexModule {
   }
 
   @Mutation
+  private _setViewSinks (payload: { sinks: Sink[], view: View}): void {
+    payload.view.sinks = payload.sinks
+  }
+
+  @Mutation
   private _setViewCapabilities (payload: { view: string, capabilities: ViewCapabilities }): void {
     const view = this._views.find(_view => _view.id === payload.view)
     if (view === undefined) return
     view.capabilities = payload.capabilities
+  }
+
+  @Mutation
+  private _setViewSinkInUse (payload: { view: string, sink: string }): void {
+    const view = this._views.find(_view => _view.id === payload.view)
+    if (view === undefined) return
+    view.currentSink = payload.sink
   }
 }
 
@@ -167,11 +231,13 @@ export type View = {
   id: string
   worker: string
   currentURL?: string
-  screenshot?: string,
+  screenshot?: string
   refresh?: {
     refreshEvery: number
   },
   capabilities: ViewCapabilities
+  sinks: Sink[]
+  currentSink?: string
 }
 
 export default getModule(WorkerModule)

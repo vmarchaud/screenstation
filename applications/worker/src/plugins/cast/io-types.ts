@@ -9,7 +9,11 @@ export const ListSinkPayloadIO = t.type({
 })
 
 export const CastViewPayloadIO = t.type({
-  sinkName: t.string,
+  sink: t.string,
+  worker: t.string,
+  view: t.string
+})
+export const StopCastViewPayloadIO = t.type({
   worker: t.string,
   view: t.string
 })

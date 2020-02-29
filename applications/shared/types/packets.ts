@@ -9,7 +9,8 @@ export enum PayloadType {
   RESTART = 'RESTART',
   // cast plugin
   LIST_SINKS = 'LIST_SINKS',
-  CAST_VIEW = 'CAST_VIEW',
+  SELECT_SINK = 'SELECT_SINK',
+  STOP_SINK = 'STOP_SINK',
   // view plugins
   SET_VIEW_URL = 'SET_VIEW_URL',
   GET_VIEW = 'GET_VIEW',

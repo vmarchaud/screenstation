@@ -27,9 +27,18 @@
           <v-btn
             color="blue"
             text
+            v-show="view.capabilities.refresh"
             @click="openSetRefresh(view)"
           >
             Set refresh interval
+          </v-btn>
+          <v-btn
+            color="blue"
+            text
+            v-show="view.capabilities.cast"
+            @click="openSelectSink(view)"
+          >
+            Cast view
           </v-btn>
           <router-link :to="`${view.worker}/${view.id}/control`">
              <v-btn
@@ -41,7 +50,8 @@
           </router-link>
         </v-card-actions>
         <SetViewUrl :view="view" ></SetViewUrl>
-        <SetRefreshUrl :view="view" ></SetRefreshUrl>
+        <SetRefreshUrl v-show="view.capabilities.refresh" :view="view" ></SetRefreshUrl>
+        <SelectSinkView v-show="view.capabilities.cast" :view="view" ></SelectSinkView>
       </v-card>
     </v-container>
 </template>
@@ -51,8 +61,9 @@ import { Component, Vue } from 'vue-property-decorator'
 import ViewModule, { View } from '../store/modules/ViewModule'
 import SetViewUrl from './SetViewUrl.vue'
 import SetRefreshUrl from './SetRefreshView.vue'
+import SelectSinkView from './SelectSinkView.vue'
 
-@Component({ components: { SetViewUrl, SetRefreshUrl } })
+@Component({ components: { SetViewUrl, SetRefreshUrl, SelectSinkView } })
 export default class ViewList extends Vue {
 
   public get views () {
@@ -65,6 +76,10 @@ export default class ViewList extends Vue {
 
   async openSetRefresh (view: View) {
     this.$root.$emit('onSetRefresh', view.id)
+  }
+
+  async openSelectSink (view: View) {
+    this.$root.$emit('onSelectSink', view.id)
   }
 }
 </script>

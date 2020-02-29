@@ -4,7 +4,8 @@ import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
 import { decodeIO } from '../../../../shared/utils/decode'
 import {
-  CastViewPayloadIO
+  CastViewPayloadIO,
+  StopCastViewPayloadIO
 } from './io-types'
 import { Sink } from '../../../../shared/types/sink'
 import config from './config.json'
@@ -15,7 +16,8 @@ export type CastPluginConfig = t.TypeOf<typeof CastPluginConfigIO>
 
 enum PayloadType {
   LIST_SINKS = 'LIST_SINKS',
-  CAST_VIEW = 'CAST_VIEW',
+  SELECT_SINK = 'SELECT_SINK',
+  STOP_SINK = 'STOP_SINK'
 }
 
 export class CastPlugin implements Plugin {
@@ -31,6 +33,7 @@ export class CastPlugin implements Plugin {
   private config: CastPluginConfig
   private store: WorkerStore
   private sinksAvailable: Sink[] = []
+  private currentSinkUsed: Map<string, string> = new Map()
 
   async init (store: WorkerStore) {
     this.store = store
@@ -50,23 +53,40 @@ export class CastPlugin implements Plugin {
     const { views } = this.store
     switch (packet.type) {
       case PayloadType.LIST_SINKS: {
-        packet.payload = { sinks: this.sinksAvailable }
+        packet.payload = {
+          sinks: this.sinksAvailable,
+          currentlyUsed: Array.from(this.currentSinkUsed.entries())
+        }
         break
       }
-      case PayloadType.CAST_VIEW: {
+      case PayloadType.SELECT_SINK: {
         const payload = await decodeIO(CastViewPayloadIO, packet.payload)
         const view = views.find(view => view.id === payload.view)
         if (view === undefined) {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const sink = this.sinksAvailable.find(sink => sink.name === payload.sinkName)
+        const sink = this.sinksAvailable.find(sink => sink.name === payload.sink)
         if (sink === undefined) {
-          packet.error = `Failed to find sink with id ${payload.sinkName}`
+          packet.error = `Failed to find sink with id ${payload.sink}`
           break
         }
         await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
         await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
+        this.currentSinkUsed.set(view.id, sink.name)
+        break
+      }
+      case PayloadType.STOP_SINK: {
+        const payload = await decodeIO(StopCastViewPayloadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        const currentSink = this.currentSinkUsed.get(payload.view)
+        if (currentSink === undefined) break
+        await view.session.send('Cast.stopCasting', { sinkName: currentSink })
+        this.currentSinkUsed.delete(payload.view)
         break
       }
     }
