@@ -1,9 +1,13 @@
 {
-  "name": "screenstation-backend",
+  "name": "screenstation",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev-worker": "ts-node-dev --respawn --exit-child --transpileOnly src/worker/app.ts",
-    "dev-api": "ts-node-dev --respawn --transpileOnly src/api/app.ts"
+    "dev-worker": "cd applications/worker && yarn dev",
+    "dev-api": "cd applications/api && yarn dev",
+    "dev-front": "cd applications/frontend && yarn start"
+  },
+  "devDependencies": {
+    "lerna": "^3.20.2"
   }
 }
