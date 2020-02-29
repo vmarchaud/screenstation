@@ -2,8 +2,6 @@ import * as t from 'io-ts'
 import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
-import { promises } from 'fs'
-import * as path from 'path'
 import { decodeIO } from '../../../../shared/utils/decode'
 import { sleep } from '../../../../shared/utils/common'
 import {
@@ -11,6 +9,7 @@ import {
   StartStreamPayLoadIO,
   StopStreamViewPayLoadIO
 } from './io-types'
+import config from './config.json'
 
 const StreamPluginConfigIO = t.type({})
 
@@ -37,8 +36,7 @@ export class StreamPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    const configFile = await promises.readFile(path.resolve(__dirname, './config.json'))
-    this.config = await decodeIO(StreamPluginConfigIO, JSON.parse(configFile.toString()))
+    this.config = await decodeIO(StreamPluginConfigIO, config)
   }
 
   async getPacketTypes () {

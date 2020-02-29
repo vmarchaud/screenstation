@@ -2,8 +2,6 @@ import * as t from 'io-ts'
 import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
-import { promises } from 'fs'
-import * as path from 'path'
 import { decodeIO } from '../../../../shared/utils/decode'
 import {
   CreateViewPayloadIO,
@@ -11,6 +9,7 @@ import {
   GetViewPayloadIO,
   SetViewUrlPayloadIO
 } from './io-types'
+import config from './config.json'
 
 const ViewPluginConfigIO = t.type({
   default_url: t.string
@@ -41,8 +40,7 @@ export class ViewPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    const configFile = await promises.readFile(path.resolve(__dirname, './config.json'))
-    this.config = await decodeIO(ViewPluginConfigIO, JSON.parse(configFile.toString()))
+    this.config = await decodeIO(ViewPluginConfigIO, config)
     await this.restoreViews()
   }
 

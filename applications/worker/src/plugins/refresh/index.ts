@@ -2,14 +2,13 @@ import * as t from 'io-ts'
 import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
-import { promises } from 'fs'
-import * as path from 'path'
 import { decodeIO } from '../../../../shared/utils/decode'
 import {
   SetRefreshPayloadIO,
   GetRefreshPayloadIO
 } from './io-types'
-SetRefreshPayloadIO
+import config from './config.json'
+
 const RefreshEntryIO = t.type({
   view: t.string,
   refreshEvery: t.number
@@ -45,8 +44,7 @@ export class RefreshPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    const configFile = await promises.readFile(path.resolve(__dirname, './config.json'))
-    this.config = await decodeIO(RefreshPluginConfigIO, JSON.parse(configFile.toString()))
+    this.config = await decodeIO(RefreshPluginConfigIO, config)
     for (let entry of this.config.entries) {
       this.intervalStore.set(entry.view, this.getInterval(entry))
     }

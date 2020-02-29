@@ -3,15 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpileOnly src/app.ts"
+    "dev": "ts-node-dev --respawn --transpileOnly src/app.ts",
+    "build": "tsc --project .",
+    "compile": "pkg ./build/api/src/app.js --platform linux --out-path ./bins",
+    "install": "sudo ln -s ./bins/app-linux /usr/bin/screenstation-api"
   },
   "dependencies": {
     "@rlvt/io-ts": "^2.1.1",
     "async": "^3.1.0",
     "debug": "^4.1.1",
-    "fp-ts": "^2.0.5",
+    "fp-ts": "^2.5.3",
     "http-errors": "^1.7.2",
-    "io-ts": "^2.0.1",
+    "io-ts": "^2.1.2",
     "io-ts-reporters": "^1.0.0",
     "multicast-dns": "^7.2.1",
     "uuid": "^3.3.2",
@@ -19,8 +22,10 @@
   },
   "devDependencies": {
     "@types/mdns": "^0.0.33",
+    "@types/puppeteer": "^2.0.1",
     "@types/uuid": "^3.4.5",
     "@types/ws": "^6.0.4",
+    "pkg": "^4.4.3",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.4"
   }

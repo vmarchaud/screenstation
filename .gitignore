@@ -70,3 +70,4 @@ volumes/
 *.gcp_keys
 
 build/
+bins/

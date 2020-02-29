@@ -2,13 +2,12 @@ import * as t from 'io-ts'
 import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
-import { promises } from 'fs'
-import * as path from 'path'
 import { decodeIO } from '../../../../shared/utils/decode'
 import {
   CastViewPayloadIO
 } from './io-types'
 import { Sink } from '../../../../shared/types/sink'
+import config from './config.json'
 
 const CastPluginConfigIO = t.type({})
 
@@ -35,8 +34,7 @@ export class CastPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    const configFile = await promises.readFile(path.resolve(__dirname, './config.json'))
-    this.config = await decodeIO(CastPluginConfigIO, JSON.parse(configFile.toString()))
+    this.config = await decodeIO(CastPluginConfigIO, config)
     this.listenForSink()
   }
 

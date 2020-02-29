@@ -3,13 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --exit-child --transpileOnly src/app.ts"
+    "dev": "ts-node-dev --respawn --exit-child --transpileOnly src/app.ts",
+    "build": "tsc --project .",
+    "compile": "pkg ./build/worker/src/app.js --platform linux --out-path ./bins",
+    "install": "sudo ln -s ./bins/app-linux /usr/bin/screenstation-worker"
   },
   "dependencies": {
     "@rlvt/io-ts": "^2.1.1",
     "debug": "^4.1.1",
-    "fp-ts": "^2.0.5",
-    "io-ts": "^2.0.1",
+    "fp-ts": "^2.5.3",
+    "io-ts": "^2.1.2",
     "io-ts-reporters": "^1.0.0",
     "multicast-dns": "^7.2.1",
     "puppeteer": "^2.1.1",
@@ -24,6 +27,7 @@
     "@types/uuid": "^3.4.5",
     "@types/ws": "^6.0.4",
     "mocha": "^6.2.0",
+    "pkg": "^4.4.3",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.4"
   }

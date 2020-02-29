@@ -1,6 +1,6 @@
 
 import { randomString } from '../../shared/utils/common'
-import * as pkg from '../../../package.json'
+import * as pkg from '../package.json'
 
 export default {
   VERSION: pkg.version,

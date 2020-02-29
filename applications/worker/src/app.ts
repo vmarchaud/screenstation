@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import './puppeteer-plugins'
 import config from './config'
 import { decodeIO } from '../../shared/utils/decode'
 import { PacketIO, Packet } from '../../shared/types/packets'
