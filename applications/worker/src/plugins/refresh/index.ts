@@ -3,11 +3,14 @@ import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
 import { decodeIO } from '../../../../shared/utils/decode'
+import { promises, existsSync } from 'fs'
+import * as path from 'path'
 import {
   SetRefreshPayloadIO,
   GetRefreshPayloadIO
 } from './io-types'
-import config from './config.json'
+import { encodeIO } from '../../../../shared/utils/encode'
+import of from '../../../../shared/utils/of'
 
 const RefreshEntryIO = t.type({
   view: t.string,
@@ -44,10 +47,24 @@ export class RefreshPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    this.config = await decodeIO(RefreshPluginConfigIO, config)
+    const configPath = path.resolve(this.store.configRootPath, './refresh.json')
+    if (existsSync(configPath) === false) {
+      this.config = { entries: [] }
+    } else {
+      const rawConfig = await promises.readFile(configPath)
+      this.config = await decodeIO(RefreshPluginConfigIO, JSON.parse(rawConfig.toString()))
+    }
     for (let entry of this.config.entries) {
       this.intervalStore.set(entry.view, this.getInterval(entry))
     }
+    // save config every 5min in case we abrubtly shutdown
+    setInterval(() => {
+      void of(this.saveConfig())
+    }, 1000 * 60 * 5)
+  }
+
+  async destroy () {
+    await this.saveConfig()
   }
 
   async getPacketTypes () {
@@ -124,6 +141,13 @@ export class RefreshPlugin implements Plugin {
         view.page.reload()
       }
     }, entry.refreshEvery)
+  }
+
+  private async saveConfig () {
+    if (this.config.entries.length === 0) return
+    const configPath = path.resolve(this.store.configRootPath, './refresh.json')
+    const rawConfig =  await encodeIO(RefreshPluginConfigIO,this.config)
+    await promises.writeFile(configPath, rawConfig)
   }
 }
 

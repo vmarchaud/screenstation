@@ -8,6 +8,8 @@ import { WebsocketTransport } from '../../shared/utils/ws'
 import of from '../../shared/utils/of'
 import MDNS from 'multicast-dns'
 import { WorkerStore, PluginToLoad, Plugin } from './types'
+import { promises } from 'fs'
+import * as path from 'path'
 
 import * as CorePlugins from './plugins'
 
@@ -23,6 +25,8 @@ export class Worker {
 
   private pluginsToLoad: PluginToLoad[] = []
   private packetHandlers: Map<string, Plugin> = new Map()
+
+  private shuttingDown: boolean = false
   
   async init () {
     console.log('Waiting to discover master on network using mdns')
@@ -34,12 +38,16 @@ export class Worker {
     console.log('Starting handshake ...')
     await this.handshake(ws)
     console.log('Handshake done')
+    console.log('Verifying configuration folder')
+    const configRootPath = path.resolve(process.env.STATION_CONFIG_PATH || '/etc/screenstation/')
+    await of(promises.mkdir(configRootPath))
     this.store = {
       browser: await this.getBrowser(),
       views: [],
       socket: ws,
       workerName: config.NAME,
-      plugins: []
+      plugins: [],
+      configRootPath
     }
     console.log('Loading plugins ...')
     for (let plugin of this.corePlugins) {
@@ -92,6 +100,10 @@ export class Worker {
       packet.sent = new Date()
       return ws.send(packetToReturn)
     })
+    console.log('Listening for shutdown request ...')
+    process.on('SIGINT', this.onShutdown.bind(this))
+    process.on('SIGINT', this.onShutdown.bind(this))
+    process.on('SIGQUIT', this.onShutdown.bind(this))
   }
 
   private async handshake (socket: WebsocketTransport) {
@@ -173,6 +185,20 @@ export class Worker {
       })
       mdns.query('workers.screenstation.local', 'SRV')
     })
+  }
+
+  private async onShutdown (signal: NodeJS.Signals) {
+    if (this.shuttingDown === true) return console.log(`Received ${signal} signal but already shutting down`)
+    this.shuttingDown = true
+    console.log(`Received signal ${signal}, start shutdown procedure`)
+    for (let plugin of this.store.plugins) {
+      const meta = await plugin.getMetadata()
+      await plugin.destroy()
+      console.log(`Plugin ${meta.displayName} has been destroyed`)
+    }
+    console.log(`Cleaning up resources`)
+    await this.store.browser.close()
+    console.log('Shutting down succesfull')
   }
 }
 

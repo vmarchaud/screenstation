@@ -3,16 +3,25 @@ import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
 import { decodeIO } from '../../../../shared/utils/decode'
+import { encodeIO } from '../../../../shared/utils/encode'
+import { promises, existsSync } from 'fs'
+import * as path from 'path'
 import {
   CreateViewPayloadIO,
   DeleteViewPayloadIO,
   GetViewPayloadIO,
   SetViewUrlPayloadIO
 } from './io-types'
-import config from './config.json'
+import of from '../../../../shared/utils/of'
+
+const SavedViewIO = t.type({
+  id: t.string,
+  currentURL: t.union([ t.undefined, t.string ])
+})
 
 const ViewPluginConfigIO = t.type({
-  default_url: t.string
+  default_url: t.string,
+  savedViews: t.array(SavedViewIO)
 })
 
 export type ViewPluginConfig = t.TypeOf<typeof ViewPluginConfigIO>
@@ -40,8 +49,27 @@ export class ViewPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    this.config = await decodeIO(ViewPluginConfigIO, config)
+    const configPath = path.resolve(this.store.configRootPath, './views.json')
+    if (existsSync(configPath) === false) {
+      // use a default config
+      this.config = {
+        default_url: 'https://google.com',
+        savedViews: []
+      }
+    } else {
+      const rawConfig = await promises.readFile(configPath)
+      this.config = await decodeIO(ViewPluginConfigIO, JSON.parse(rawConfig.toString()))
+    }
+    
     await this.restoreViews()
+    // save config every 5min in case we abrubtly shutdown
+    setInterval(() => {
+      void of(this.saveConfig())
+    }, 1000 * 60 * 5)
+  }
+
+  async destroy () {
+    await this.saveConfig()
   }
 
   async getPacketTypes () {
@@ -128,21 +156,44 @@ export class ViewPlugin implements Plugin {
   }
 
   private async restoreViews () {
-    const defaultView = await this.createView('default')
-    this.store.views.push(defaultView)
+    // create a default view if none exist
+    if (this.config.savedViews.length === 0) {
+      const defaultView = await this.createView('default')
+      this.store.views.push(defaultView)
+      return
+    }
+
+    for (let savedView of this.config.savedViews) {
+      const view = await this.createView(savedView.id, savedView.currentURL)
+      this.store.views.push(view)
+    }
   }
 
-  private async createView (name: string) {
+  private async createView (name: string, url?: string) {
     const page = await this.store.browser.newPage()
     const session = await page.target().createCDPSession()
     await session.send('Cast.enable')
-    await page.goto(this.config.default_url)
+    await page.goto(url || this.config.default_url)
     return {
       id: name,
-      currentURL: this.config.default_url,
+      currentURL: url || this.config.default_url,
       session,
       page
     }
+  }
+
+  private async saveConfig () {
+    const configPath = path.resolve(this.store.configRootPath, './views.json')
+    this.config.savedViews = this.store.views.map(view => {
+      return {
+        id: view.id,
+        currentURL: view.currentURL,
+        sink: view.sink !== undefined ? view.sink.name : undefined
+      }
+    })
+    const serializedConfig = await encodeIO(ViewPluginConfigIO, this.config)
+    const rawConfig = JSON.stringify(serializedConfig)
+    await promises.writeFile(configPath, rawConfig)
   }
 }
 

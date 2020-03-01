@@ -71,3 +71,4 @@ volumes/
 
 build/
 bins/
+configs/

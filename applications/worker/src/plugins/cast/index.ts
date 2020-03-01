@@ -3,14 +3,19 @@ import { Plugin, PluginMetadata } from '../../types'
 import { WorkerStore } from '../../types'
 import { Packet } from '../../../../shared/types/packets'
 import { decodeIO } from '../../../../shared/utils/decode'
+import { promises, existsSync } from 'fs'
+import * as path from 'path'
 import {
   CastViewPayloadIO,
   StopCastViewPayloadIO
 } from './io-types'
 import { Sink } from '../../../../shared/types/sink'
-import config from './config.json'
+import { encodeIO } from '../../../../shared/utils/encode'
+import of from '../../../../shared/utils/of'
 
-const CastPluginConfigIO = t.type({})
+const CastPluginConfigIO = t.type({
+  sinkUsed: t.array(t.array(t.string))
+})
 
 export type CastPluginConfig = t.TypeOf<typeof CastPluginConfigIO>
 
@@ -37,8 +42,22 @@ export class CastPlugin implements Plugin {
 
   async init (store: WorkerStore) {
     this.store = store
-    this.config = await decodeIO(CastPluginConfigIO, config)
+    const configPath = path.resolve(this.store.configRootPath, './cast.json')
+    if (existsSync(configPath) === false) {
+      this.config = { sinkUsed: [] }
+    } else {
+      const rawConfig = await promises.readFile(configPath)
+      this.config = await decodeIO(CastPluginConfigIO, JSON.parse(rawConfig.toString()))
+    }
     this.listenForSink()
+    // save config every 5min in case we abrubtly shutdown
+    setInterval(() => {
+      void of(this.saveConfig())
+    }, 1000 * 60 * 5)
+  }
+
+  async destroy () {
+    await this.saveConfig()
   }
 
   async getPacketTypes () {
@@ -108,8 +127,32 @@ export class CastPlugin implements Plugin {
         } else {
           this.sinksAvailable.splice(previousSinkIdx, 1, sink)
         }
+        // if we previously had a cast registered but we dont currently
+        // cast the view to id
+        const viewUsed = this.config.sinkUsed.find(sinkUse => sinkUse[1] === sink.name)
+        if (viewUsed === undefined) return
+        const viewId = viewUsed[0]
+        void this.handle({
+          type: 'SELECT_SINK',
+          payload: {
+            sink: sink.name,
+            view: viewId
+          },
+          sent: new Date(),
+          ack: false,
+          error: undefined,
+          sequence: -1
+        })
       })
     })
+  }
+
+  private async saveConfig () {
+    const configPath = path.resolve(this.store.configRootPath, './cast.json')
+    this.config.sinkUsed = Array.from(this.currentSinkUsed.entries())
+    const serializedConfig = await encodeIO(CastPluginConfigIO, this.config)
+    const rawConfig = JSON.stringify(serializedConfig)
+    await promises.writeFile(configPath, rawConfig)
   }
 }
 

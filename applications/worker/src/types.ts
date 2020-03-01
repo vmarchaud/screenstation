@@ -10,7 +10,8 @@ export type WorkerStore = {
   browser: Browser,
   workerName: string,
   socket: WebsocketTransport,
-  plugins: Plugin[]
+  plugins: Plugin[],
+  configRootPath: string
 }
 
 export const PluginMetadataIO = t.type({
@@ -29,6 +30,7 @@ export type PluginToLoad = t.TypeOf<typeof PluginToLoadIO>
 
 export interface Plugin {
   init (store: WorkerStore): Promise<void>
+  destroy (): Promise<void>
 
   getPacketTypes (): Promise<PacketDescriptor[]>
   getMetadata (): Promise<PluginMetadata>
