@@ -38,7 +38,7 @@
                       @click="openSelectSink(view)"
                     >{{ view.currentSink !== undefined ? 'mdi-cast-connected' : 'mdi-cast'}}</v-icon>
                   </template>
-                  <span>Currently casting to {{ view.currentSink ? view.sinks.find(sink => sink.name === view.currentSink).name : 'nothing'}}</span>
+                  <span>Currently casting to {{ getCurrentSinkName(view) }}</span>
                 </v-tooltip>
                 <!-- Button to set view as active -->
                 <v-tooltip top>
@@ -109,6 +109,13 @@ export default class ViewList extends Vue {
 
   public get views () {
     return ViewModule.views
+  }
+
+  getCurrentSinkName (view: View) {
+    if (view.currentSink === undefined) return 'nothing'
+    const sink = view.sinks.find(sink => sink.name === view.currentSink)
+    if (sink === undefined) return 'nothing'
+    return sink.name
   }
 
   async openSetURL (view: View) {

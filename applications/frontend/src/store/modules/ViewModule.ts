@@ -4,6 +4,7 @@ import store from '../index'
 import { PayloadType } from '../../../../shared/types/packets'
 import WebsocketModule from './WebsocketModule'
 import { Sink } from '../../../../shared/types/sink'
+import Vue from 'vue'
 
 @Module({ dynamic: true, namespaced: true, name: WorkerModule.NAME, store })
 class WorkerModule extends VuexModule {
@@ -116,8 +117,8 @@ class WorkerModule extends VuexModule {
     const currentlyUsed = payload.currentlyUsed
     for (let usedSink of currentlyUsed) {
       this.context.commit('_setViewSinkInUse', {
-        view: usedSink[1],
-        sink: usedSink[0]
+        view: usedSink[0],
+        sink: usedSink[1]
       })
     }
     return { sinks: payload.sinks, view }
@@ -215,7 +216,9 @@ class WorkerModule extends VuexModule {
 
   @Mutation
   private _setViewSinks (payload: { sinks: Sink[], view: View}): void {
-    payload.view.sinks = payload.sinks
+    const view = this._views.find(view => payload.view.id === view.id)
+    if (view === undefined) return
+    Vue.set(view, 'sinks', payload.sinks)
   }
 
   @Mutation
@@ -229,7 +232,7 @@ class WorkerModule extends VuexModule {
   private _setViewSinkInUse (payload: { view: string, sink: string }): void {
     const view = this._views.find(_view => _view.id === payload.view)
     if (view === undefined) return
-    view.currentSink = payload.sink
+    Vue.set(view, 'currentSink', payload.sink)
   }
 }
 
