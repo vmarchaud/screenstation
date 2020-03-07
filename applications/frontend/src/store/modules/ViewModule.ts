@@ -174,6 +174,18 @@ class WorkerModule extends VuexModule {
     return { view: view.id, sink: undefined }
   }
 
+  @Action({})
+  public async setViewAsActive ({ view }: { view: View }) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.SELECT_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    void this.fetch()
+  }
+
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views
@@ -238,6 +250,7 @@ export type View = {
   capabilities: ViewCapabilities
   sinks: Sink[]
   currentSink?: string
+  isSelected: boolean
 }
 
 export default getModule(WorkerModule)

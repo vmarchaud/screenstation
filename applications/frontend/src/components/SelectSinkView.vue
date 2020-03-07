@@ -55,6 +55,7 @@ export default class SetViewUrl extends Vue {
 
   mounted () {
     this.selectedSink = this.view.currentSink ?? 'none'
+    void ViewModule.fetchViewSinks(this.view)
     this.$root.$on('onSelectSink', (viewId: string) => {
       if (viewId !== this.view.id) return
       this.isOpen = true
