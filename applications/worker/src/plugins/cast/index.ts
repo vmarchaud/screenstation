@@ -135,20 +135,20 @@ export class CastPlugin implements Plugin {
         if (viewUsed === undefined) return
         const viewId = viewUsed[0]
         if (this.currentSinkUsed.has(viewId)) return
-        void this.handle({
-          type: 'SELECT_SINK',
-          payload: {
-            sink: sink.name,
-            view: viewId,
-            worker: this.store.workerName
-          },
-          sent: new Date(),
-          ack: false,
-          error: undefined,
-          sequence: -1
-        })
+        void this.restoreSink(sink, viewId)
       })
     })
+  }
+
+  private async restoreSink (sink: Sink, viewId: string) {
+    const view = this.store.views.find(view => view.id === viewId)
+    if (view === undefined) return
+    if (this.currentSinkUsed.has(viewId)) return
+    this.currentSinkUsed.set(view.id, sink.name)
+    await view.page.waitForSelector('body')
+    await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
+    await view.page.waitFor(5000)
+    await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
   }
 
   private async saveConfig () {
