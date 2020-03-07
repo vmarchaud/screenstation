@@ -1,0 +1,12 @@
+[Unit]
+Description=Screenstation API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/vmarchaud/api-linux
+User=vmarchaud
+Group=vmarchaud
+
+[Install]
+WantedBy=multi-user.target

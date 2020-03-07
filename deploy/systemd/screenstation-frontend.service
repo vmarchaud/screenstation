@@ -1,0 +1,10 @@
+[Unit]
+Description=Screenstation Frontend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/vmarchaud/frontend-linux
+
+[Install]
+WantedBy=multi-user.target

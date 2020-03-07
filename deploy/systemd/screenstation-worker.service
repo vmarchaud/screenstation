@@ -1,0 +1,17 @@
+[Unit]
+Description=Screenstation Worker
+After=network-online.target
+After=screenstation-api.service
+After=display-manager.service
+Wants=network-online.target
+Wants=screenstation-api.service
+Wants=display-manager.service
+
+[Service]
+ExecStart=/home/vmarchaud/worker-linux
+User=vmarchaud
+Group=vmarchaud
+Environment=DISPLAY=:0.0
+
+[Install]
+WantedBy=multi-user.target
