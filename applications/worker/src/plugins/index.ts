@@ -7,6 +7,6 @@ import * as streamPlugin from './stream'
 
 export const ViewPlugin = viewPlugin.default
 export const MetaPlugin = metaPlugin.default
-export const CastPlugin = castPlugin.default
 export const RefreshPlugin = refreshPlugin.default
 export const StreamPlugin = streamPlugin.default
+export const CastPlugin = castPlugin.default

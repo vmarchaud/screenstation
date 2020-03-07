@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpileOnly src/app.ts",
     "build": "tsc --project .",
-    "compile": "pkg ./build/api/src/app.js --platform linux --out-path ./bins",
+    "compile": "pkg ./build/api/src/app.js --targets latest-linux-armv6 --out-path ./bins",
     "install": "sudo ln -s ./bins/app-linux /usr/bin/screenstation-api"
   },
   "dependencies": {

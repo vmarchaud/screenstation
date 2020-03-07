@@ -149,6 +149,7 @@ export class ViewPlugin implements Plugin {
         }
         view.currentURL = payload.url
         await view.page.goto(payload.url)
+        void this.saveConfig()
         break
       }
     }

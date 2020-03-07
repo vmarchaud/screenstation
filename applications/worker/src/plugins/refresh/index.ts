@@ -105,8 +105,10 @@ export class RefreshPlugin implements Plugin {
           entry.refreshEvery = payload.refreshEvery
           const interval = this.intervalStore.get(payload.view)
           if (interval === undefined) break
+          clearInterval(interval)
           this.intervalStore.set(payload.view, this.getInterval(entry))
         }
+        void this.saveConfig()
         break
       }
       case PayloadType.GET_REFRESH_VIEW: {
@@ -140,14 +142,14 @@ export class RefreshPlugin implements Plugin {
         // otherwise reload
         view.page.reload()
       }
-    }, entry.refreshEvery)
+    }, entry.refreshEvery * 1000)
   }
 
   private async saveConfig () {
     if (this.config.entries.length === 0) return
     const configPath = path.resolve(this.store.configRootPath, './refresh.json')
     const rawConfig =  await encodeIO(RefreshPluginConfigIO,this.config)
-    await promises.writeFile(configPath, rawConfig)
+    await promises.writeFile(configPath, JSON.stringify(rawConfig))
   }
 }
 

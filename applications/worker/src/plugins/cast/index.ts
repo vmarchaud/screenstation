@@ -93,6 +93,7 @@ export class CastPlugin implements Plugin {
         await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
         await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
         this.currentSinkUsed.set(view.id, sink.name)
+        void this.saveConfig()
         break
       }
       case PayloadType.STOP_SINK: {
@@ -106,6 +107,7 @@ export class CastPlugin implements Plugin {
         if (currentSink === undefined) break
         await view.session.send('Cast.stopCasting', { sinkName: currentSink })
         this.currentSinkUsed.delete(payload.view)
+        void this.saveConfig()
         break
       }
     }
@@ -132,11 +134,13 @@ export class CastPlugin implements Plugin {
         const viewUsed = this.config.sinkUsed.find(sinkUse => sinkUse[1] === sink.name)
         if (viewUsed === undefined) return
         const viewId = viewUsed[0]
+        if (this.currentSinkUsed.has(viewId)) return
         void this.handle({
           type: 'SELECT_SINK',
           payload: {
             sink: sink.name,
-            view: viewId
+            view: viewId,
+            worker: this.store.workerName
           },
           sent: new Date(),
           ack: false,
