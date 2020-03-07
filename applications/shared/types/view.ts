@@ -7,12 +7,14 @@ export type View = {
   session: CDPSession,
   page: Page,
   currentURL?: string,
-  sink?: Sink
+  sink?: Sink,
+  isSelected: boolean
 }
 
 export const ViewIO = t.type({
   id: t.string,
   worker: t.string,
   currentURL: t.union([ t.undefined, t.string ]),
-  sink: t.union([ t.undefined, SinkIO ])
+  sink: t.union([ t.undefined, SinkIO ]),
+  isSelected: t.boolean
 })

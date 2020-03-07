@@ -11,6 +11,7 @@
   "dependencies": {
     "@rlvt/io-ts": "^2.1.1",
     "debug": "^4.1.1",
+    "docker-names": "^1.1.1",
     "fp-ts": "^2.5.3",
     "io-ts": "^2.1.2",
     "io-ts-reporters": "^1.0.0",

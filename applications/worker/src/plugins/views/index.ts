@@ -13,10 +13,12 @@ import {
   SetViewUrlPayloadIO
 } from './io-types'
 import of from '../../../../shared/utils/of'
+import { getRandomName } from 'docker-names'
 
 const SavedViewIO = t.type({
   id: t.string,
-  currentURL: t.union([ t.undefined, t.string ])
+  currentURL: t.union([ t.undefined, t.string ]),
+  isSelected: t.boolean
 })
 
 const ViewPluginConfigIO = t.type({
@@ -88,7 +90,8 @@ export class ViewPlugin implements Plugin {
           id: view.id,
           worker: this.store.workerName,
           currentURL: view.currentURL,
-          sink: view.sink
+          sink: view.sink,
+          isSelected: view.isSelected
         })) }
         break
       }
@@ -114,7 +117,8 @@ export class ViewPlugin implements Plugin {
         })
         packet.payload = {
           screenshot: (screenshot as any).data,
-          currentURL: view.page.url()
+          currentURL: view.page.url(),
+          isSelected: view.isSelected
         }
         break
       }
@@ -138,6 +142,9 @@ export class ViewPlugin implements Plugin {
           break
         }
         await view.page.bringToFront()
+        for (let _view of this.store.views) {
+          _view.isSelected = _view.id === view.id
+        }
         break
       }
       case PayloadType.SET_VIEW_URL: {
@@ -159,7 +166,8 @@ export class ViewPlugin implements Plugin {
   private async restoreViews () {
     // create a default view if none exist
     if (this.config.savedViews.length === 0) {
-      const defaultView = await this.createView('default')
+      const defaultView = await this.createView(getRandomName())
+      defaultView.isSelected = true
       this.store.views.push(defaultView)
       return
     }
@@ -167,6 +175,10 @@ export class ViewPlugin implements Plugin {
     for (let savedView of this.config.savedViews) {
       const view = await this.createView(savedView.id, savedView.currentURL)
       this.store.views.push(view)
+      if (savedView.isSelected === true) {
+        await view.page.bringToFront()
+        view.isSelected = true
+      }
     }
   }
 
@@ -179,7 +191,8 @@ export class ViewPlugin implements Plugin {
       id: name,
       currentURL: url || this.config.default_url,
       session,
-      page
+      page,
+      isSelected: false
     }
   }
 
@@ -189,7 +202,8 @@ export class ViewPlugin implements Plugin {
       return {
         id: view.id,
         currentURL: view.currentURL,
-        sink: view.sink !== undefined ? view.sink.name : undefined
+        sink: view.sink !== undefined ? view.sink.name : undefined,
+        isSelected: view.isSelected
       }
     })
     const serializedConfig = await encodeIO(ViewPluginConfigIO, this.config)
