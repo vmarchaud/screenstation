@@ -7,8 +7,10 @@ import { promises, existsSync } from 'fs'
 import * as path from 'path'
 import {
   CastViewPayloadIO,
-  StopCastViewPayloadIO
+  StopCastViewPayloadIO,
+  ListSinkPayloadIO
 } from './io-types'
+import { View } from '../../../../shared/types/view'
 import { Sink } from '../../../../shared/types/sink'
 import { encodeIO } from '../../../../shared/utils/encode'
 import of from '../../../../shared/utils/of'
@@ -37,7 +39,7 @@ export class CastPlugin implements Plugin {
   // @ts-ignore
   private config: CastPluginConfig
   private store: WorkerStore
-  private sinksAvailable: Sink[] = []
+  private sinksAvailable: Map<string, Sink[]> = new Map()
   private currentSinkUsed: Map<string, string> = new Map()
 
   async init (store: WorkerStore) {
@@ -49,7 +51,9 @@ export class CastPlugin implements Plugin {
       const rawConfig = await promises.readFile(configPath)
       this.config = await decodeIO(CastPluginConfigIO, JSON.parse(rawConfig.toString()))
     }
-    this.listenForSink()
+    for (let view of this.store.views) {
+      this.listenForSink(view)
+    }
     // save config every 5min in case we abrubtly shutdown
     setInterval(() => {
       void of(this.saveConfig())
@@ -72,8 +76,9 @@ export class CastPlugin implements Plugin {
     const { views } = this.store
     switch (packet.type) {
       case PayloadType.LIST_SINKS: {
+        const payload = await decodeIO(ListSinkPayloadIO, packet.payload)
         packet.payload = {
-          sinks: this.sinksAvailable,
+          sinks: this.sinksAvailable.get(payload.view) || [],
           currentlyUsed: Array.from(this.currentSinkUsed.entries())
         }
         break
@@ -85,15 +90,20 @@ export class CastPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const sink = this.sinksAvailable.find(sink => sink.name === payload.sink)
+        const sinks = this.sinksAvailable.get(view.id) || []
+        const sink = sinks.find(sink => sink.name === payload.sink)
         if (sink === undefined) {
           packet.error = `Failed to find sink with id ${payload.sink}`
           break
         }
+        await view.page.bringToFront()
         await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
         await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
         this.currentSinkUsed.set(view.id, sink.name)
         void this.saveConfig()
+        // restore current selected view
+        const selectedView = this.store.views.find(view => view.isSelected)
+        if (selectedView) await selectedView.page.bringToFront()
         break
       }
       case PayloadType.STOP_SINK: {
@@ -114,8 +124,7 @@ export class CastPlugin implements Plugin {
     return packet
   }
 
-  private listenForSink () {
-    const view = this.store.views[0]
+  private listenForSink (view: View) {
     view.session.on('Cast.sinksUpdated', (res: { sinks: Sink[] }) => {
       if (res.sinks.length === 0) return
       res.sinks.map(sink => {
@@ -123,12 +132,14 @@ export class CastPlugin implements Plugin {
         sink.id = idMatches !== null ? idMatches[1] : sink.id
         return sink
       }).forEach(sink => {
-        const previousSinkIdx = this.sinksAvailable.findIndex(snk => snk.id === sink.id)
+        const sinks = this.sinksAvailable.get(view.id) || []
+        const previousSinkIdx = sinks.findIndex(snk => snk.id === sink.id)
         if (previousSinkIdx === -1) {
-          this.sinksAvailable.push(sink)
+          sinks.push(sink)
         } else {
-          this.sinksAvailable.splice(previousSinkIdx, 1, sink)
+          sinks.splice(previousSinkIdx, 1, sink)
         }
+        this.sinksAvailable.set(view.id, sinks)
         // if we previously had a cast registered but we dont currently
         // cast the view to id
         const viewUsed = this.config.sinkUsed.find(sinkUse => sinkUse[1] === sink.name)
@@ -145,10 +156,14 @@ export class CastPlugin implements Plugin {
     if (view === undefined) return
     if (this.currentSinkUsed.has(viewId)) return
     this.currentSinkUsed.set(view.id, sink.name)
+    await view.page.bringToFront()
     await view.page.waitForSelector('body')
     await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
     await view.page.waitFor(5000)
     await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
+    // restore current selected view
+    const selectedView = this.store.views.find(view => view.isSelected)
+    if (selectedView) await selectedView.page.bringToFront()
   }
 
   private async saveConfig () {

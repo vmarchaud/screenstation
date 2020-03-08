@@ -102,6 +102,9 @@ export class ViewPlugin implements Plugin {
         if (payload.url !== undefined) {
           await view.page.goto(payload.url)
         }
+        const selectedView = this.store.views.find(view => view.isSelected)
+        if (selectedView !== undefined) await selectedView.page.bringToFront()
+        void this.saveConfig()
         break
       }
       case PayloadType.GET_VIEW: {
@@ -111,10 +114,15 @@ export class ViewPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const screenshot = await view.session.send('Page.captureScreenshot', {
-          format: 'jpeg',
-          quality: 40
-        })
+        const screenshot = await Promise.race([
+          view.session.send('Page.captureScreenshot', {
+            format: 'jpeg',
+            quality: 40
+          }),
+          new Promise((resolve) => {
+            return setTimeout(() => resolve({ data: undefined }), 500)
+          })
+        ])
         packet.payload = {
           screenshot: (screenshot as any).data,
           currentURL: view.page.url(),
@@ -168,6 +176,7 @@ export class ViewPlugin implements Plugin {
     if (this.config.savedViews.length === 0) {
       const defaultView = await this.createView(getRandomName())
       defaultView.isSelected = true
+      await defaultView.page.bringToFront()
       this.store.views.push(defaultView)
       return
     }
@@ -180,6 +189,8 @@ export class ViewPlugin implements Plugin {
         view.isSelected = true
       }
     }
+    const selectedView = this.store.views.find(view => view.isSelected)
+    if (selectedView !== undefined) await selectedView.page.bringToFront()
   }
 
   private async createView (name: string, url?: string) {

@@ -19,9 +19,9 @@
         <v-row>
             <v-card
             v-for="view in views"
-            v-bind:key="view.worker + view.name"
-            class="mx-auto"
-            max-width="800"
+            v-bind:key="view.worker + view.id"
+            class="mx-auto mt-10"
+            min-width="800"
           >
             <v-card-title>
               <v-col cols=10 class="pa-0" style="text-align: initial;">
@@ -50,12 +50,13 @@
                       @click="openSetActive(view)"
                     >{{ view.isSelected ? 'mdi-television-play' : 'mdi-television'}}</v-icon>
                   </template>
-                  <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}} {{ view.isSelected ? `on ${getWorkerForView(view)}` : ''}} </span>
+                  <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}} on {{ getWorkerForView(view) }} </span>
                 </v-tooltip>
               </v-col>
             </v-card-title>
             <v-divider></v-divider>
             <v-img
+              v-if="view.screenshot !== undefined"
               class="white--text align-end"
               :src="view.screenshot"
               min-width="500px"

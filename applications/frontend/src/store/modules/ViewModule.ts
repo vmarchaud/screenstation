@@ -36,7 +36,7 @@ class ViewModule extends VuexModule {
         }
       })
       const screenshot = (res.payload as any)[0].screenshot
-      view.screenshot = `data:image/png;base64,${screenshot}`
+      view.screenshot = screenshot === undefined ? undefined : `data:image/png;base64,${screenshot}`
       return view
     }))
     viewsWithScreenshot.forEach(view => {
@@ -58,7 +58,7 @@ class ViewModule extends VuexModule {
       }
     })
     const payload = (res.payload as any)[0]
-    view.screenshot = `data:image/png;base64,${payload.screenshot}`
+    view.screenshot = payload && payload.screenshot ? `data:image/png;base64,${payload.screenshot}` : undefined
     view.currentURL = payload.currentURL ?? view.currentURL
     return view
   }
@@ -114,6 +114,7 @@ class ViewModule extends VuexModule {
       }
     })
     const payload = (res.payload as any)[0]
+    console.log(payload)
     const currentlyUsed = payload.currentlyUsed
     for (let usedSink of currentlyUsed) {
       this.context.commit('_setViewSinkInUse', {
@@ -195,6 +196,7 @@ class ViewModule extends VuexModule {
         worker
       }
     })
+    void this.fetch()
   }
 
   @Mutation

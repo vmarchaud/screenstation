@@ -20,7 +20,6 @@ class InitModule extends VuexModule {
   public async init (): Promise<boolean> {
     await WSModule.connect()
     await ViewModule.fetch()
-    console.log(WorkerModule)
     await WorkerModule.fetch()
     return true
   }
