@@ -68,6 +68,7 @@ export class StreamPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
+        await view.page.bringToFront()
         // start sending frames
         view.session.on('Page.screencastFrame', (res) => {
           const sessionId = res.sessionId
@@ -91,6 +92,8 @@ export class StreamPlugin implements Plugin {
             const onStopHandler = (viewId: string) => {
               if (viewId !== view.id) return
               this.store.socket.removeListener(PayloadType.STOP_STREAM_VIEW, onStopHandler)
+              const selectedView = this.store.views.find(view => view.isSelected)
+              if (selectedView) void selectedView.page.bringToFront()
               return resolve()
             }
             this.store.socket.on(PayloadType.STOP_STREAM_VIEW, onStopHandler)

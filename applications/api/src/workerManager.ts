@@ -43,7 +43,7 @@ export class Worker {
   startTransaction (packet: Packet, onPacket: (packet: Packet) => void): Promise<Packet> {
     return new Promise((resolve) => {
       this.options.socket.send(JSON.stringify(Object.assign({}, packet, { sequence: this.options.sequence })))
-      this.ackStore.set(`${this.options.id}:${packet.sequence}`, (packet: Packet) => {
+      this.ackStore.set(`${this.options.id}:${this.options.sequence}`, (packet: Packet) => {
         return packet.ack === true ? resolve(packet) : onPacket(packet)
       })
       this.options.sequence += 1
@@ -69,9 +69,9 @@ export class WorkerManager {
   async onConnection (socket: WebSocket, request: http.IncomingMessage) {
     socket.once('message', async (data) => {
       try {
-        console.log(data)
         const packet = await decodeIO(PacketIO, JSON.parse(data))
         if (packet.type !== 'HELLO') return socket.close()
+        console.log(data)
         const payload = await decodeIO(HelloPayloadIO, packet.payload)
         const id = payload.name
         const client = new Worker({
