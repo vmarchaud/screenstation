@@ -10,7 +10,7 @@
             ></v-text-field>
           </v-col>
           <v-col>
-             <v-btn circle color="primary">
+             <v-btn @click="openCreateView" circle color="primary">
               <v-icon>mdi-plus</v-icon>
               Add a new view
             </v-btn>
@@ -90,12 +90,13 @@
                 </v-btn>
               </router-link>
             </v-card-actions>
-            <SetViewUrl :view="view" ></SetViewUrl>
-            <SetRefreshUrl v-show="view.capabilities.refresh" :view="view" ></SetRefreshUrl>
-            <SelectSinkView v-show="view.capabilities.cast" :view="view" ></SelectSinkView>
-            <SetViewAsActive :view="view" ></SetViewAsActive>
           </v-card>
         </v-row>
+      <SetViewUrl></SetViewUrl>
+      <SetRefreshUrl></SetRefreshUrl>
+      <SelectSinkView></SelectSinkView>
+      <SetViewAsActive></SetViewAsActive>
+      <CreateView></CreateView>
     </v-container>
 </template>
 
@@ -107,8 +108,9 @@ import SetViewUrl from './SetViewUrl.vue'
 import SetRefreshUrl from './SetRefreshView.vue'
 import SelectSinkView from './SelectSinkView.vue'
 import SetViewAsActive from './SetViewAsActive.vue'
+import CreateView from './CreateView.vue'
 
-@Component({ components: { SetViewUrl, SetRefreshUrl, SelectSinkView, SetViewAsActive } })
+@Component({ components: { SetViewUrl, SetRefreshUrl, SelectSinkView, SetViewAsActive, CreateView } })
 export default class ViewList extends Vue {
 
   public get views () {
@@ -128,20 +130,24 @@ export default class ViewList extends Vue {
   }
 
   async openSetURL (view: View) {
-    this.$root.$emit('onSetViewUrl', view.id)
+    this.$root.$emit('onSetViewUrl', view)
   }
 
   async openSetRefresh (view: View) {
-    this.$root.$emit('onSetRefresh', view.id)
+    this.$root.$emit('onSetRefresh', view)
   }
 
   async openSelectSink (view: View) {
-    this.$root.$emit('onSelectSink', view.id)
+    this.$root.$emit('onSelectSink', view)
   }
 
   async openSetActive (view: View) {
     if (view.isSelected === true) return
-    this.$root.$emit('onSetViewActive', view.id)
+    this.$root.$emit('onSetViewActive', view)
+  }
+
+  async openCreateView () {
+    this.$root.$emit('onCreateView')
   }
 }
 </script>

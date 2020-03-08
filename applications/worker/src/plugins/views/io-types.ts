@@ -2,7 +2,7 @@
 import * as t from 'io-ts'
 
 export const CreateViewPayloadIO = t.type({
-  name: t.string,
+  name: t.union([ t.undefined, t.string ]),
   worker: t.union([t.undefined, t.string]),
   url: t.union([ t.undefined, t.string ])
 })

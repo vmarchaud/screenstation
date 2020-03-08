@@ -3,21 +3,16 @@ import { Action, getModule, Module, Mutation, VuexModule } from 'vuex-module-dec
 import store from '../index'
 import { PayloadType } from '../../../../shared/types/packets'
 import WebsocketModule from './WebsocketModule'
-import ViewModule, { View } from './ViewModule'
-import Vue from 'vue'
 
 @Module({ dynamic: true, namespaced: true, name: WorkerModule.NAME, store })
 class WorkerModule extends VuexModule {
   public static readonly NAME = 'workers'
   private readonly logger = LoggerFactory.getLogger(`store.${WorkerModule.NAME}`)
 
-  private _workers: _Worker[] = []
+  private _workers: Worker[] = []
 
   public get workers (): Worker[] {
-    return this._workers.map(worker => {
-      const views = ViewModule.views.filter(view => view.worker === worker.id)
-      return Object.assign({}, worker, { views })
-    })
+    return this._workers
   }
 
   @Action({ commit: '_setWorkers' })
@@ -30,21 +25,14 @@ class WorkerModule extends VuexModule {
   }
 
   @Mutation
-  private _setWorkers (workers: _Worker[]) {
+  private _setWorkers (workers: Worker[]) {
     this._workers = workers
   }
 }
 
-// Internal representation without data populated (ie: views)
-type _Worker = {
+type Worker = {
   id: string
   name: string
-}
-
-export type Worker = {
-  id: string
-  name: string
-  views: View[]
 }
 
 export default getModule(WorkerModule)

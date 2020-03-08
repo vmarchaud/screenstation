@@ -97,7 +97,7 @@ export class ViewPlugin implements Plugin {
       }
       case PayloadType.CREATE_VIEW: {
         const payload = await decodeIO(CreateViewPayloadIO, packet.payload)
-        const view = await this.createView(payload.name)
+        const view = await this.createView(payload.name || getRandomName())
         views.push(view)
         if (payload.url !== undefined) {
           await view.page.goto(payload.url)
