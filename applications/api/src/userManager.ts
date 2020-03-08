@@ -45,6 +45,12 @@ export class UserManager {
       return socket.send(JSON.stringify(packet))
     }
     switch (packet.type) {
+      case PayloadType.LIST_WORKERS: {
+        packet.payload = this._workerManager.clients.map(worker => {
+          return { id: worker.id, name: worker.name }
+        })
+        break
+      }
       case PayloadType.START_STREAM_VIEW: {
         if (targets.length > 1) {
           packet.error = `Cant target multiple worker for stream`

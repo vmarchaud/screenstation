@@ -3,6 +3,7 @@ import { Action, getModule, Module, Mutation, VuexModule } from 'vuex-module-dec
 import store from '../index'
 import WSModule from './WebsocketModule'
 import ViewModule from './ViewModule'
+import WorkerModule from './WorkerModule'
 
 @Module({ dynamic: true, namespaced: true, name: InitModule.NAME, store })
 class InitModule extends VuexModule {
@@ -19,6 +20,8 @@ class InitModule extends VuexModule {
   public async init (): Promise<boolean> {
     await WSModule.connect()
     await ViewModule.fetch()
+    console.log(WorkerModule)
+    await WorkerModule.fetch()
     return true
   }
 

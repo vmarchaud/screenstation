@@ -6,10 +6,10 @@ import WebsocketModule from './WebsocketModule'
 import { Sink } from '../../../../shared/types/sink'
 import Vue from 'vue'
 
-@Module({ dynamic: true, namespaced: true, name: WorkerModule.NAME, store })
-class WorkerModule extends VuexModule {
-  public static readonly NAME = 'workers'
-  private readonly logger = LoggerFactory.getLogger(`store.${WorkerModule.NAME}`)
+@Module({ dynamic: true, namespaced: true, name: ViewModule.NAME, store })
+class ViewModule extends VuexModule {
+  public static readonly NAME = 'views'
+  private readonly logger = LoggerFactory.getLogger(`store.${ViewModule.NAME}`)
 
   private _views: View[] = []
 
@@ -187,6 +187,16 @@ class WorkerModule extends VuexModule {
     void this.fetch()
   }
 
+  @Action({})
+  public async createView (worker: string) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.CREATE_VIEW,
+      payload: {
+        worker
+      }
+    })
+  }
+
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views
@@ -256,4 +266,4 @@ export type View = {
   isSelected: boolean
 }
 
-export default getModule(WorkerModule)
+export default getModule(ViewModule)

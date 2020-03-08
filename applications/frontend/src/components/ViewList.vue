@@ -50,7 +50,7 @@
                       @click="openSetActive(view)"
                     >{{ view.isSelected ? 'mdi-television-play' : 'mdi-television'}}</v-icon>
                   </template>
-                  <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}}</span>
+                  <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}} {{ view.isSelected ? `on ${getWorkerForView(view)}` : ''}} </span>
                 </v-tooltip>
               </v-col>
             </v-card-title>
@@ -58,7 +58,10 @@
             <v-img
               class="white--text align-end"
               :src="view.screenshot"
+              min-width="500px"
+              max-width="800px"
             >
+            <v-divider></v-divider>
               
             </v-img>
 
@@ -99,6 +102,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
 import ViewModule, { View } from '../store/modules/ViewModule'
+import WorkerModule from '../store/modules/WorkerModule'
 import SetViewUrl from './SetViewUrl.vue'
 import SetRefreshUrl from './SetRefreshView.vue'
 import SelectSinkView from './SelectSinkView.vue'
@@ -116,6 +120,11 @@ export default class ViewList extends Vue {
     const sink = view.sinks.find(sink => sink.name === view.currentSink)
     if (sink === undefined) return 'nothing'
     return sink.name
+  }
+
+  getWorkerForView (view: View) {
+    const worker = WorkerModule.workers.find(worker => worker.id === view.worker)
+    return worker ? worker.name : '???'
   }
 
   async openSetURL (view: View) {

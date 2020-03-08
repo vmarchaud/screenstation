@@ -7,6 +7,7 @@ export enum PayloadType {
   HELLO = 'HELLO',
   STOP = 'STOP',
   RESTART = 'RESTART',
+  LIST_WORKERS = 'LIST_WORKERS',
   // cast plugin
   LIST_SINKS = 'LIST_SINKS',
   SELECT_SINK = 'SELECT_SINK',
