@@ -114,7 +114,6 @@ class ViewModule extends VuexModule {
       }
     })
     const payload = (res.payload as any)[0]
-    console.log(payload)
     const currentlyUsed = payload.currentlyUsed
     for (let usedSink of currentlyUsed) {
       this.context.commit('_setViewSinkInUse', {
@@ -219,11 +218,9 @@ class ViewModule extends VuexModule {
 
   @Mutation
   private _setViewRefresh (payload: { refreshEvery: number, view: View}): void {
-    if (payload.view.refresh === undefined) {
-      payload.view.refresh = { refreshEvery: payload.refreshEvery }
-    } else {
-      payload.view.refresh.refreshEvery = payload.refreshEvery
-    }
+    const view = this._views.find(view => view.id === payload.view.id)
+    if (view === undefined) return
+    Vue.set(view, 'refresh', { refreshEvery: payload.refreshEvery })
   }
 
   @Mutation

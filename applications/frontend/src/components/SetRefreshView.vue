@@ -47,8 +47,8 @@ export default class SetRefreshView extends Vue {
 
   mounted () {
     this.$root.$on('onSetRefresh', (view: View) => {
-      const refreshEvery = this.view.refresh?.refreshEvery
-      this.inputValue = refreshEvery ? refreshEvery / 1000 : 0
+      this.view = view
+      this.inputValue = this.view.refresh?.refreshEvery || 0
       this.isOpen = true
     })
   }

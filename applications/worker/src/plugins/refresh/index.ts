@@ -95,7 +95,7 @@ export class RefreshPlugin implements Plugin {
           this.intervalStore.set(entry.view, this.getInterval(entry))
         } else if (payload.refreshEvery <= 0) {
           // if the refreshEvery is 0 or negative, we consider it as a deletion
-          this.config.entries = this.config.entries.filter(entry => entry.view === payload.view)
+          this.config.entries = this.config.entries.filter(entry => entry.view !== payload.view)
           const interval = this.intervalStore.get(payload.view)
           if (interval === undefined) break
           clearInterval(interval)
