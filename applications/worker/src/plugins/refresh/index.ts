@@ -146,7 +146,6 @@ export class RefreshPlugin implements Plugin {
   }
 
   private async saveConfig () {
-    if (this.config.entries.length === 0) return
     const configPath = path.resolve(this.store.configRootPath, './refresh.json')
     const rawConfig =  await encodeIO(RefreshPluginConfigIO,this.config)
     await promises.writeFile(configPath, JSON.stringify(rawConfig))
