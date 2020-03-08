@@ -39,19 +39,16 @@ import { Component, Vue, Prop } from 'vue-property-decorator'
 import ViewModule, { View } from '../store/modules/ViewModule'
 
 @Component
-export default class SetViewUrl extends Vue {
-  @Prop()
-  // @ts-ignore
-  public view: View
-
+export default class SetRefreshView extends Vue {
   public inputValue: number = 0
   public isOpen: boolean = false
+  // @ts-ignore
+  public view: View = {}
 
   mounted () {
-    const refreshEvery = this.view.refresh?.refreshEvery
-    this.inputValue = refreshEvery ? refreshEvery / 1000 : 0
-    this.$root.$on('onSetRefresh', (viewId: string) => {
-      if (viewId !== this.view.id) return
+    this.$root.$on('onSetRefresh', (view: View) => {
+      const refreshEvery = this.view.refresh?.refreshEvery
+      this.inputValue = refreshEvery ? refreshEvery / 1000 : 0
       this.isOpen = true
     })
   }

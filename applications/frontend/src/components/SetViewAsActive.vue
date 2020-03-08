@@ -35,15 +35,14 @@ import ViewModule, { View } from '../store/modules/ViewModule'
 
 @Component
 export default class SetViewAsActive extends Vue {
-  @Prop()
-  // @ts-ignore
-  public view: View
 
+  // @ts-ignore
+  public view: View = {}
   public isOpen: boolean = false
 
   mounted () {
-    this.$root.$on('onSetViewActive', (viewId: string) => {
-      if (viewId !== this.view.id) return
+    this.$root.$on('onSetViewActive', (view: View) => {
+      this.view = view
       this.isOpen = true
     })
   }

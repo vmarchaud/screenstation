@@ -42,9 +42,8 @@ import ViewModule, { View } from '../store/modules/ViewModule'
 
 @Component
 export default class SetViewUrl extends Vue {
-  @Prop()
   // @ts-ignore
-  public view: View
+  public view: View = { sinks: [] }
 
   public selectedSink: string = 'none'
   public isOpen: boolean = false
@@ -54,10 +53,10 @@ export default class SetViewUrl extends Vue {
   }
 
   mounted () {
-    this.selectedSink = this.view.currentSink ?? 'none'
-    void ViewModule.fetchViewSinks(this.view)
-    this.$root.$on('onSelectSink', (viewId: string) => {
-      if (viewId !== this.view.id) return
+    this.$root.$on('onSelectSink', (view: View) => {
+      this.view = view
+      this.selectedSink = this.view.currentSink ?? 'none'
+      void ViewModule.fetchViewSinks(this.view)
       this.isOpen = true
     })
   }

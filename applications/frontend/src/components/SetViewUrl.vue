@@ -1,5 +1,5 @@
 <template>
-  <v-dialog max-width="600px" :value="isSettingUrl" v-on:click:outside="isSettingUrl = false">
+  <v-dialog max-width="600px" :value="isOpen" v-on:click:outside="isOpen = false">
     <v-card>
       <v-form @v-on:submit="setUrl()">
         <v-card-title>
@@ -35,24 +35,22 @@ import ViewModule, { View } from '../store/modules/ViewModule'
 
 @Component
 export default class SetViewUrl extends Vue {
-  @Prop()
-  // @ts-ignore
-  public view: View
-
   public inputValue: string = ''
-  public isSettingUrl: boolean = false
+  public isOpen: boolean = false
+  // @ts-ignore
+  public view: View = {}
 
   mounted () {
-    this.inputValue = this.view.currentURL ?? ''
-    this.$root.$on('onSetViewUrl', (viewId: string) => {
-      if (viewId !== this.view.id) return
-      this.isSettingUrl = true
+    this.$root.$on('onSetViewUrl', (view: View) => {
+      this.view = view
+      this.inputValue = this.view.currentURL ?? ''
+      this.isOpen = true
     })
   }
 
   async setUrl () {
     await ViewModule.setUrl({ view: this.view, url: this.inputValue })
-    this.isSettingUrl = false
+    this.isOpen = false
   }
 }
 </script>>
