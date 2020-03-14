@@ -198,6 +198,18 @@ class ViewModule extends VuexModule {
     void this.fetch()
   }
 
+  @Action({ commit: '_deleteView' })
+  public async deleteView (view: View) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.DELETE_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    return view.id
+  }
+
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views
@@ -242,6 +254,13 @@ class ViewModule extends VuexModule {
     const view = this._views.find(_view => _view.id === payload.view)
     if (view === undefined) return
     Vue.set(view, 'currentSink', payload.sink)
+  }
+
+  @Mutation
+  private _deleteView (viewId: string) {
+    const viewIndex = this._views.findIndex(_view => viewId === _view.id)
+    if (viewIndex === -1) return
+    this._views.splice(viewIndex, 1)
   }
 }
 

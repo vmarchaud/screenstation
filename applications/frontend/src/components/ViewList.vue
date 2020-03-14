@@ -52,6 +52,17 @@
                   </template>
                   <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}} on {{ getWorkerForView(view) }} </span>
                 </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-icon
+                      v-on="on"
+                      class="pa-2"
+                      color="red dark"
+                      @click="deleteView(view)"
+                    >close</v-icon>
+                  </template>
+                  <span>Remove this view</span>
+                </v-tooltip>
               </v-col>
             </v-card-title>
             <v-divider></v-divider>
@@ -145,6 +156,10 @@ export default class ViewList extends Vue {
   async openSetActive (view: View) {
     if (view.isSelected === true) return
     this.$root.$emit('onSetViewActive', view)
+  }
+
+  async deleteView (view: View) {
+    await ViewModule.deleteView(view)
   }
 
   async openCreateView () {
