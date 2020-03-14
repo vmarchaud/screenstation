@@ -140,11 +140,10 @@ export class Worker {
   }
 
   private async getBrowser () {
-    const evasions = StealthPlugin().availableEvasions
-    evasions.delete('')
     puppeteer.use(StealthPlugin({
-      enabledEvasions: evasions
+      enabledEvasions: StealthPlugin().availableEvasions
     }))
+    // we want to avoid popup to restore session so we override the state of chrome
     const browser = await puppeteer.launch({
       headless: false,
       ignoreDefaultArgs: true,
@@ -154,6 +153,7 @@ export class Worker {
         `--window-position=${config.LAUNCH_POSITION}`,
         '--enable-features=NetworkService,NetworkServiceInProcess',
         '--disable-background-timer-throttling',
+        '--disable-permissions-api',
         '--disable-backgrounding-occluded-windows',
         '--disable-breakpad',
         '--disable-client-side-phishing-detection',
@@ -162,10 +162,13 @@ export class Worker {
         '--disable-ipc-flooding-protection',
         '--disable-prompt-on-repost',
         '--disable-renderer-backgrounding',
+        '--disable-session-crashed-bubble',
         '--disable-sync',
+        '--disable-infobars',
         '--force-color-profile=srgb',
         '--metrics-recording-only',
         '--no-first-run',
+        '--kiosk',
         '--password-store=basic',
         '--use-mock-keychain',
         '--hide-scrollbars',

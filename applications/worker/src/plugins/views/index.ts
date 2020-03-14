@@ -14,11 +14,13 @@ import {
 } from './io-types'
 import of from '../../../../shared/utils/of'
 import { getRandomName } from 'docker-names'
+import { SetCookie } from 'puppeteer'
 
 const SavedViewIO = t.type({
   id: t.string,
   currentURL: t.union([ t.undefined, t.string ]),
-  isSelected: t.boolean
+  isSelected: t.boolean,
+  cookies: t.array(t.unknown)
 })
 
 const ViewPluginConfigIO = t.type({
@@ -183,6 +185,11 @@ export class ViewPlugin implements Plugin {
 
     for (let savedView of this.config.savedViews) {
       const view = await this.createView(savedView.id, savedView.currentURL)
+      if (savedView.cookies.length > 0) {
+        view.page.setCookie(...savedView.cookies as SetCookie[])
+        // for some reason if we reload directly the cookie aren't used
+        setTimeout(_ => view.page.reload(), 500)
+      }
       this.store.views.push(view)
       if (savedView.isSelected === true) {
         await view.page.bringToFront()
@@ -209,14 +216,15 @@ export class ViewPlugin implements Plugin {
 
   private async saveConfig () {
     const configPath = path.resolve(this.store.configRootPath, './views.json')
-    this.config.savedViews = this.store.views.map(view => {
+    this.config.savedViews = await Promise.all(this.store.views.map(async view => {
       return {
         id: view.id,
         currentURL: view.currentURL,
         sink: view.sink !== undefined ? view.sink.name : undefined,
-        isSelected: view.isSelected
+        isSelected: view.isSelected,
+        cookies: await view.page.cookies()
       }
-    })
+    }))
     const serializedConfig = await encodeIO(ViewPluginConfigIO, this.config)
     const rawConfig = JSON.stringify(serializedConfig)
     await promises.writeFile(configPath, rawConfig)
