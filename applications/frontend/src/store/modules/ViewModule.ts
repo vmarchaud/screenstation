@@ -210,6 +210,18 @@ class ViewModule extends VuexModule {
     return view.id
   }
 
+  @Action({})
+  public async reloadView (view: View) {
+    const res = await WebsocketModule.send({
+      type: PayloadType.RELOAD_VIEW,
+      payload: {
+        worker: view.worker,
+        view: view.id
+      }
+    })
+    void this.fetchCurrentContent(view)
+  }
+
   @Mutation
   private _setViews (views: View[]): void {
     this._views = views

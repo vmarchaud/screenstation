@@ -24,10 +24,10 @@
             min-width="800"
           >
             <v-card-title>
-              <v-col cols=10 class="pa-0" style="text-align: initial;">
+              <v-col cols=9 class="pa-0" style="text-align: initial;">
                 {{ view.currentURL.substring(0, 50) }}
               </v-col>
-              <v-col cols=2 class="pa-0">
+              <v-col cols=3 class="pa-0">
                 <!-- Button to cast a view -->
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
@@ -51,6 +51,16 @@
                     >{{ view.isSelected ? 'mdi-television-play' : 'mdi-television'}}</v-icon>
                   </template>
                   <span>Currently {{ view.isSelected ? 'shown' : 'hidden'}} on {{ getWorkerForView(view) }} </span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <v-icon
+                      v-on="on"
+                      class="pa-2"
+                      @click="reloadView(view)"
+                    >mdi-restart</v-icon>
+                  </template>
+                  <span>Reload this view</span>
                 </v-tooltip>
                 <v-tooltip top>
                   <template v-slot:activator="{ on }">
@@ -160,6 +170,10 @@ export default class ViewList extends Vue {
 
   async deleteView (view: View) {
     await ViewModule.deleteView(view)
+  }
+
+  async reloadView (view: View) {
+    await ViewModule.reloadView(view)
   }
 
   async openCreateView () {

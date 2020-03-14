@@ -36,7 +36,8 @@ enum PayloadType {
   LIST_VIEW = 'LIST_VIEW',
   DELETE_VIEW = 'DELETE_VIEW',
   SELECT_VIEW = 'SELECT_VIEW',
-  SET_VIEW_URL = 'SET_VIEW_URL'
+  SET_VIEW_URL = 'SET_VIEW_URL',
+  RELOAD_VIEW = 'RELOAD_VIEW'
 }
 
 export class ViewPlugin implements Plugin {
@@ -142,6 +143,7 @@ export class ViewPlugin implements Plugin {
         const view = views[viewIndex]
         await view.page.close()
         views.splice(viewIndex, 1)
+        void this.saveConfig()
         break
       }
       case PayloadType.SELECT_VIEW: {
@@ -167,6 +169,16 @@ export class ViewPlugin implements Plugin {
         view.currentURL = payload.url
         await view.page.goto(payload.url)
         void this.saveConfig()
+        break
+      }
+      case PayloadType.RELOAD_VIEW: {
+        const payload = await decodeIO(DeleteViewPayloadIO, packet.payload)
+        const view = views.find(view => view.id === payload.view)
+        if (view === undefined) {
+          packet.error = `Failed to find view with id ${payload.view}`
+          break
+        }
+        await view.page.reload()
         break
       }
     }
