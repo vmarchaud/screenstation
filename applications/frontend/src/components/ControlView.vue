@@ -145,7 +145,8 @@ export default class ControlView extends Vue {
         // do nothing
       }
     }
-    if (event.shiftKey) modifiers += 8
+    // apparently the shift modifier make chrome doesnt apply the edit
+    // if (event.shiftKey) modifiers += 8
     if (event.altKey) modifiers += 1
     if (event.ctrlKey) modifiers += 2
     if (event.metaKey) modifiers += 4
