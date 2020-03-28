@@ -136,6 +136,11 @@ export class StreamPlugin implements Plugin {
             await view.session.send('Input.dispatchKeyEvent', params)
             break
           }
+          case 'paste': {
+            const params = payload.event.params
+            await view.session.send('Input.insertText', params)
+            break
+          }
         }
         break
       }

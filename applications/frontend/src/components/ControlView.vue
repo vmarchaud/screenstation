@@ -102,7 +102,7 @@ export default class ControlView extends Vue {
     })
   }
 
-  handleKeyboardEvent (type: string, event: KeyboardEvent) {
+  async handleKeyboardEvent (type: string, event: KeyboardEvent) {
     if (this.streaming === false) return
     let text: string = ''
 
@@ -123,6 +123,28 @@ export default class ControlView extends Vue {
     }
 
     let modifiers = 0
+    // specific case to handle pasting content
+    if (event.ctrlKey === true && event.key === 'v' && type === 'keyup') {
+      try {
+        const text = await navigator.clipboard.readText()
+        if (text.length > 0) {
+          void WebsocketModule.send({
+            type: PayloadType.EVENT_STREAM_VIEW,
+            payload: {
+              view: this.view.id,
+              worker: this.view.worker,
+              event: {
+                type: 'paste',
+                params: { text }
+              }
+            }
+          })
+          return
+        }
+      } catch (err) {
+        // do nothing
+      }
+    }
     if (event.shiftKey) modifiers += 8
     if (event.altKey) modifiers += 1
     if (event.ctrlKey) modifiers += 2
