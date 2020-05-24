@@ -124,7 +124,7 @@ export default class ControlView extends Vue {
 
     let modifiers = 0
     // specific case to handle pasting content
-    if (event.ctrlKey === true && event.key === 'v' && type === 'keyup') {
+    if (event.ctrlKey === true && event.key === 'v' && type === 'keyUp') {
       try {
         const text = await navigator.clipboard.readText()
         if (text.length > 0) {
@@ -142,7 +142,8 @@ export default class ControlView extends Vue {
           return
         }
       } catch (err) {
-        // do nothing
+        // just log
+        console.warn(err)
       }
     }
     // apparently the shift modifier make chrome doesnt apply the edit
