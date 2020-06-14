@@ -13,7 +13,7 @@
                 :label="inputValue + ' seconds'"
                 v-model="inputValue"
                 required
-                max="120"
+                max="3600"
               ></v-slider>
             </v-row>
             <v-row class="pl-5">
