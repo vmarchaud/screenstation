@@ -100,6 +100,15 @@ export class Worker {
       packet.sent = new Date()
       return ws.send(packetToReturn)
     })
+    this.store.browser.on('disconnected', async (err) => {
+      console.log(`Chrome instance was disconnected, re-launching ...`)
+      for (let plugin of this.store.plugins) {
+        const meta = await plugin.getMetadata()
+        await of(plugin.destroy())
+        console.log(`Plugin ${meta.displayName} has been destroyed`)
+      }
+      await this.init()
+    })
     console.log('Listening for shutdown request ...')
     process.on('SIGINT', this.onShutdown.bind(this))
     process.on('SIGINT', this.onShutdown.bind(this))
@@ -200,7 +209,7 @@ export class Worker {
       console.log(`Plugin ${meta.displayName} has been destroyed`)
     }
     console.log(`Cleaning up resources`)
-    await this.store.browser.close()
+    await of(this.store.browser.close())
     console.log('Shutting down succesfull')
   }
 }
