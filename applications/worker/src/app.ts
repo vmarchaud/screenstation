@@ -42,7 +42,7 @@ export class Worker {
     const configRootPath = path.resolve(process.env.STATION_CONFIG_PATH || '/etc/screenstation/')
     await of(promises.mkdir(configRootPath))
     this.store = {
-      browser: await this.getBrowser(),
+      browser: await this.getBrowser(path.resolve(configRootPath, 'puppeteer')),
       views: [],
       socket: ws,
       workerName: config.NAME,
@@ -148,7 +148,7 @@ export class Worker {
     ])
   }
 
-  private async getBrowser () {
+  private async getBrowser (profilePath: string) {
     puppeteer.use(StealthPlugin({
       enabledEvasions: StealthPlugin().availableEvasions
     }))
@@ -179,9 +179,9 @@ export class Worker {
         '--no-first-run',
         '--kiosk',
         '--password-store=basic',
-        '--use-mock-keychain',
         '--hide-scrollbars',
         '--mute-audio',
+        `--user-data-dir=${profilePath}`
       ]
     })
     return browser

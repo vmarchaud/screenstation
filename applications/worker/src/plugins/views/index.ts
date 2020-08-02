@@ -14,13 +14,11 @@ import {
 } from './io-types'
 import of from '../../../../shared/utils/of'
 import { getRandomName } from 'docker-names'
-import { SetCookie } from 'puppeteer'
 
 const SavedViewIO = t.type({
   id: t.string,
   currentURL: t.union([ t.undefined, t.string ]),
-  isSelected: t.boolean,
-  cookies: t.array(t.unknown)
+  isSelected: t.boolean
 })
 
 const ViewPluginConfigIO = t.type({
@@ -197,11 +195,6 @@ export class ViewPlugin implements Plugin {
 
     for (let savedView of this.config.savedViews) {
       const view = await this.createView(savedView.id, savedView.currentURL)
-      if (savedView.cookies.length > 0) {
-        view.page.setCookie(...savedView.cookies as SetCookie[])
-        // for some reason if we reload directly the cookie aren't used
-        setTimeout(_ => view.page.reload(), 500)
-      }
       this.store.views.push(view)
       if (savedView.isSelected === true) {
         await view.page.bringToFront()
@@ -233,8 +226,7 @@ export class ViewPlugin implements Plugin {
         id: view.id,
         currentURL: view.currentURL,
         sink: view.sink !== undefined ? view.sink.name : undefined,
-        isSelected: view.isSelected,
-        cookies: await view.page.cookies()
+        isSelected: view.isSelected
       }
     }))
     const serializedConfig = await encodeIO(ViewPluginConfigIO, this.config)
