@@ -1,6 +1,6 @@
 {
   "name": "screenstation-worker",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "scripts": {
     "dev": "ts-node-dev --respawn --exit-child --transpileOnly src/app.ts",
