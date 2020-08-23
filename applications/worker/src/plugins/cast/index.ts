@@ -10,13 +10,13 @@ import {
   StopCastViewPayloadIO,
   ListSinkPayloadIO
 } from './io-types'
-import { View } from '../../../../shared/types/view'
-import { Sink } from '../../../../shared/types/sink'
 import { encodeIO } from '../../../../shared/utils/encode'
 import of from '../../../../shared/utils/of'
+import MDNS from 'multicast-dns'
 
 const CastPluginConfigIO = t.type({
-  sinkUsed: t.array(t.array(t.string))
+  sinkUsed: t.array(t.array(t.string)),
+  checkCastInterval: t.number
 })
 
 export type CastPluginConfig = t.TypeOf<typeof CastPluginConfigIO>
@@ -25,6 +25,55 @@ enum PayloadType {
   LIST_SINKS = 'LIST_SINKS',
   SELECT_SINK = 'SELECT_SINK',
   STOP_SINK = 'STOP_SINK'
+}
+
+type MdnsResponse = {
+  id: number,
+  type: 'response',
+  flags: number,
+  opcode: string,
+  questions: [],
+  answers: Array<{
+    name: string,
+    type: string,
+    ttl: number,
+    class: string,
+    flush: boolean
+    data: string
+  }>,
+  authories: [],
+  additionals: Array<{
+    name: string,
+    type: string
+    ttl: number
+    flush: boolean
+    data: Buffer[] | { priority: number, weight: number, port: number, target: string } | string
+  }>
+}
+
+type ChromecastState = {
+  rm?: string
+  /**
+   * Chromecast id
+   */
+  id: string
+  cd: string
+  ve: string
+  md: string
+  ic: string
+  /**
+   * chromecast name
+   */
+  fn: string
+  /**
+   * Chromecast message
+   */
+  rs: string
+  /**
+   * Is casting ?
+   */
+  st: '0' | '1'
+  nf: '0' | '1'
 }
 
 export class CastPlugin implements Plugin {
@@ -39,25 +88,25 @@ export class CastPlugin implements Plugin {
   // @ts-ignore
   private config: CastPluginConfig
   private store: WorkerStore
-  private sinksAvailable: Map<string, Sink[]> = new Map()
-  private currentSinkUsed: Map<string, string> = new Map()
+  private castsAvailable: ChromecastState[] = []
+  private currentCastsUsed: Map<string, ChromecastState> = new Map()
+  private mdns = MDNS()
 
   async init (store: WorkerStore) {
     this.store = store
     const configPath = path.resolve(this.store.configRootPath, './cast.json')
     if (existsSync(configPath) === false) {
-      this.config = { sinkUsed: [] }
+      this.config = { sinkUsed: [], checkCastInterval: 10000 }
     } else {
       const rawConfig = await promises.readFile(configPath)
       this.config = await decodeIO(CastPluginConfigIO, JSON.parse(rawConfig.toString()))
-    }
-    for (let view of this.store.views) {
-      this.listenForSink(view)
     }
     // save config every 5min in case we abrubtly shutdown
     setInterval(() => {
       void of(this.saveConfig())
     }, 1000 * 60 * 5)
+    await this.updateAvailableChromecast()
+    setInterval(this.updateAvailableChromecast.bind(this), this.config.checkCastInterval)
   }
 
   async destroy () {
@@ -76,10 +125,15 @@ export class CastPlugin implements Plugin {
     const { views } = this.store
     switch (packet.type) {
       case PayloadType.LIST_SINKS: {
+        // @ts-ignore
         const payload = await decodeIO(ListSinkPayloadIO, packet.payload)
         packet.payload = {
-          sinks: this.sinksAvailable.get(payload.view) || [],
-          currentlyUsed: Array.from(this.currentSinkUsed.entries())
+          sinks: this.castsAvailable.map(cast => ({
+            id: cast.id,
+            name: cast.fn,
+            type: 'CHROMECAST'
+          })),
+          currentlyUsed: Array.from(this.currentCastsUsed.entries()).map(([viewId, cast]) => ([viewId, cast.id]))
         }
         break
       }
@@ -90,16 +144,15 @@ export class CastPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const sinks = this.sinksAvailable.get(view.id) || []
-        const sink = sinks.find(sink => sink.name === payload.sink)
-        if (sink === undefined) {
+        const cast = this.castsAvailable.find(cast => cast.fn === payload.sink)
+        if (cast === undefined) {
           packet.error = `Failed to find sink with id ${payload.sink}`
           break
         }
         await view.page.bringToFront()
-        await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
-        await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
-        this.currentSinkUsed.set(view.id, sink.name)
+        await view.session.send('Cast.setSinkToUse', { sinkName: cast.fn })
+        await view.session.send('Cast.startTabMirroring', { sinkName: cast.fn })
+        this.currentCastsUsed.set(view.id, cast)
         void this.saveConfig()
         // restore current selected view
         const selectedView = this.store.views.find(view => view.isSelected)
@@ -113,10 +166,10 @@ export class CastPlugin implements Plugin {
           packet.error = `Failed to find view with id ${payload.view}`
           break
         }
-        const currentSink = this.currentSinkUsed.get(payload.view)
+        const currentSink = this.currentCastsUsed.get(payload.view)
         if (currentSink === undefined) break
-        await view.session.send('Cast.stopCasting', { sinkName: currentSink })
-        this.currentSinkUsed.delete(payload.view)
+        await view.session.send('Cast.stopCasting', { sinkName: currentSink.fn })
+        this.currentCastsUsed.delete(payload.view)
         void this.saveConfig()
         break
       }
@@ -124,43 +177,17 @@ export class CastPlugin implements Plugin {
     return packet
   }
 
-  private listenForSink (view: View) {
-    view.session.on('Cast.sinksUpdated', (res: { sinks: Sink[] }) => {
-      if (res.sinks.length === 0) return
-      res.sinks.map(sink => {
-        const idMatches = sink.id.match(/:<(.*)>/)
-        sink.id = idMatches !== null ? idMatches[1] : sink.id
-        return sink
-      }).forEach(sink => {
-        const sinks = this.sinksAvailable.get(view.id) || []
-        const previousSinkIdx = sinks.findIndex(snk => snk.id === sink.id)
-        if (previousSinkIdx === -1) {
-          sinks.push(sink)
-        } else {
-          sinks.splice(previousSinkIdx, 1, sink)
-        }
-        this.sinksAvailable.set(view.id, sinks)
-        // if we previously had a cast registered but we dont currently
-        // cast the view to id
-        const viewUsed = this.config.sinkUsed.find(sinkUse => sinkUse[1] === sink.name)
-        if (viewUsed === undefined) return
-        const viewId = viewUsed[0]
-        if (this.currentSinkUsed.has(viewId)) return
-        void this.restoreSink(sink, viewId)
-      })
-    })
-  }
-
-  private async restoreSink (sink: Sink, viewId: string) {
+  private async castView (cast: ChromecastState, viewId: string, force: boolean = false) {
     const view = this.store.views.find(view => view.id === viewId)
+    const castName = cast.fn
     if (view === undefined) return
-    if (this.currentSinkUsed.has(viewId)) return
-    this.currentSinkUsed.set(view.id, sink.name)
+    if (this.currentCastsUsed.has(view.id) && force === false) return
+    this.currentCastsUsed.set(view.id, cast)
     await view.page.bringToFront()
     await view.page.waitForSelector('body')
-    await view.session.send('Cast.setSinkToUse', { sinkName: sink.name })
+    await view.session.send('Cast.setSinkToUse', { sinkName: castName })
     await view.page.waitFor(5000)
-    await view.session.send('Cast.startTabMirroring', { sinkName: sink.name })
+    await view.session.send('Cast.startTabMirroring', { sinkName: castName })
     // restore current selected view
     const selectedView = this.store.views.find(view => view.isSelected)
     if (selectedView) await selectedView.page.bringToFront()
@@ -168,10 +195,58 @@ export class CastPlugin implements Plugin {
 
   private async saveConfig () {
     const configPath = path.resolve(this.store.configRootPath, './cast.json')
-    this.config.sinkUsed = Array.from(this.currentSinkUsed.entries())
+    this.config.sinkUsed = Array.from(this.currentCastsUsed.entries()).map(([ viewId, cast ]) => {
+      return [ viewId, cast.id ]
+    })
     const serializedConfig = await encodeIO(CastPluginConfigIO, this.config)
     const rawConfig = JSON.stringify(serializedConfig)
     await promises.writeFile(configPath, rawConfig)
+  }
+
+  private async getChromecasts (): Promise<ChromecastState[]> {
+    return new Promise((resolve, reject) => {
+      this.mdns.once('response', (response: MdnsResponse) => {
+        // get TEXT responses
+        const result = response.additionals.filter(add => add.type === 'TXT').map(txtResponse => {
+          const buffers = txtResponse.data as Buffer[]
+          // construct chromecast metadata from TXT response
+          const metadata = buffers.reduce((metadata, buff) => {
+            const line = buff.toString()
+            const [ key, value ] = line.trim().split('=')
+            metadata[key] = value
+            return metadata
+          }, {} as ChromecastState)
+          return metadata
+        })
+        return resolve(result)
+      })
+      this.mdns.query('_googlecast._tcp.local', 'PTR')
+    })
+  }
+
+  private async updateAvailableChromecast (): Promise<void> {
+    const casts = await this.getChromecasts()
+    this.castsAvailable = casts.filter(cast => cast.st === '0')
+    for (const [ viewId, castId ] of this.config.sinkUsed) {
+      const castIdx = this.castsAvailable.findIndex(cast => cast.id === castId)
+      // we see the cast available even though we should cast to it from the config
+      // so lets recast
+      if (castIdx !== -1) {
+        await this.castView(this.castsAvailable[castIdx], viewId, true)
+        console.log(`Restoring cast from view ${viewId} on ${this.castsAvailable[castIdx].fn}`)
+        this.castsAvailable.splice(castIdx, 1)
+      }
+    }
+    for (const [ viewId, cast ] of this.currentCastsUsed) {
+      const castIdx = this.castsAvailable.findIndex(cast => cast.id === cast.id)
+      // we see the cast available even though we should be casting to it
+      // someone might have disconnected our cast, lets recast
+      if (castIdx !== -1) {
+        await this.castView(cast, viewId, true)
+        console.log(`Recasting view ${viewId} on ${cast.fn} cause someone uncast`)
+        this.castsAvailable.splice(castIdx, 1)
+      }
+    }
   }
 }
 
