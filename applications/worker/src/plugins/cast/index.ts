@@ -128,7 +128,7 @@ export class CastPlugin implements Plugin {
         // @ts-ignore
         const payload = await decodeIO(ListSinkPayloadIO, packet.payload)
         packet.payload = {
-          sinks: this.castsAvailable.map(cast => ({
+          sinks: this.castsAvailable.concat(Array.from(this.currentCastsUsed.values())).map(cast => ({
             id: cast.id,
             name: cast.fn,
             type: 'CHROMECAST'
@@ -205,7 +205,8 @@ export class CastPlugin implements Plugin {
 
   private async getChromecasts (): Promise<ChromecastState[]> {
     return new Promise((resolve, reject) => {
-      this.mdns.once('response', (response: MdnsResponse) => {
+      const chromecasts: ChromecastState[] = []
+      const onMdnsResponse = (response: MdnsResponse) => {
         // get TEXT responses
         const result = response.additionals.filter(add => add.type === 'TXT').map(txtResponse => {
           const buffers = txtResponse.data as Buffer[]
@@ -218,35 +219,42 @@ export class CastPlugin implements Plugin {
           }, {} as ChromecastState)
           return metadata
         })
-        return resolve(result)
-      })
+        chromecasts.push(...result)
+      }
+      this.mdns.on('response', onMdnsResponse)
       this.mdns.query('_googlecast._tcp.local', 'PTR')
+      // wait 1s for all chromecasts responses
+      setTimeout(() => {
+        this.mdns.removeListener('response', onMdnsResponse)
+        return resolve(chromecasts)
+      }, 1000)
     })
   }
 
   private async updateAvailableChromecast (): Promise<void> {
     const casts = await this.getChromecasts()
-    this.castsAvailable = casts.filter(cast => cast.st === '0')
+    let castsAvailable = casts.filter(cast => cast.st === '0')
     for (const [ viewId, castId ] of this.config.sinkUsed) {
-      const castIdx = this.castsAvailable.findIndex(cast => cast.id === castId)
+      const cast = castsAvailable.find(cast => cast.id === castId)
       // we see the cast available even though we should cast to it from the config
       // so lets recast
-      if (castIdx !== -1) {
-        await this.castView(this.castsAvailable[castIdx], viewId, true)
-        console.log(`Restoring cast from view ${viewId} on ${this.castsAvailable[castIdx].fn}`)
-        this.castsAvailable.splice(castIdx, 1)
+      if (cast !== undefined) {
+        await this.castView(cast, viewId, true)
+        console.log(`Restoring cast from view ${viewId} on ${cast.fn}`)
+        castsAvailable = castsAvailable.filter(_cast => _cast.id !== cast.id)
       }
     }
-    for (const [ viewId, cast ] of this.currentCastsUsed) {
-      const castIdx = this.castsAvailable.findIndex(cast => cast.id === cast.id)
+    for (const [ viewId, castState ] of this.currentCastsUsed) {
+      const cast = castsAvailable.find(cast => cast.id === castState.id)
       // we see the cast available even though we should be casting to it
       // someone might have disconnected our cast, lets recast
-      if (castIdx !== -1) {
+      if (cast !== undefined) {
         await this.castView(cast, viewId, true)
         console.log(`Recasting view ${viewId} on ${cast.fn} cause someone uncast`)
-        this.castsAvailable.splice(castIdx, 1)
+        castsAvailable = castsAvailable.filter(_cast => _cast.id !== cast.id)
       }
     }
+    this.castsAvailable = castsAvailable
   }
 }
 

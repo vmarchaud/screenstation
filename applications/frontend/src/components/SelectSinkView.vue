@@ -29,7 +29,6 @@
             color="primary darken-1"
             text
             @click="save()"
-            :disabled="selectedSink === view.currentURL"
           >Set</v-btn>
         </v-card-actions>
       </v-form>
@@ -55,8 +54,8 @@ export default class SetViewUrl extends Vue {
   mounted () {
     this.$root.$on('onSelectSink', (view: View) => {
       this.view = view
-      this.selectedSink = this.view.currentSink ?? 'none'
       void ViewModule.fetchViewSinks(this.view)
+      this.selectedSink = view.sinks.find(sink => sink.id === view.currentSink)!.name
       this.isOpen = true
     })
   }

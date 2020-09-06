@@ -141,7 +141,7 @@ export default class ViewList extends Vue {
 
   getCurrentSinkName (view: View) {
     if (view.currentSink === undefined) return 'nothing'
-    const sink = view.sinks.find(sink => sink.name === view.currentSink)
+    const sink = view.sinks.find(sink => sink.id === view.currentSink)
     if (sink === undefined) return 'nothing'
     return sink.name
   }
