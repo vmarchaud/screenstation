@@ -58,7 +58,7 @@ export default class SetViewUrl extends Vue {
       const currentSink = view.sinks.find(sink => sink.id === view.currentSink)
       if (currentSink !== undefined) {
         this.selectedSink = currentSink.name
-      }      
+      }
       this.isOpen = true
     })
   }

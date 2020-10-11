@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --exit-child --transpileOnly src/app.ts",
     "build": "tsc --project .",
-    "compile": "pkg ./build/worker/src/app.js --platform linux --out-path ./bins",
-    "install": "sudo ln -s ./bins/app-linux /usr/bin/screenstation-worker"
+    "compile": "pkg ./build/worker/src/app.js --target node12-linux-$TARGET_ENV --output ../../bins/station-worker-$TARGET_ENV"
   },
   "dependencies": {
     "@rlvt/io-ts": "^2.1.1",

@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "compile": "pkg --out-path ../bins package.json"
+    "compile": "pkg --target node12-linux-$TARGET_ENV --output ../../../bins/station-frontend-$TARGET_ENV package.json"
   },
   "dependencies": {
     "express": "^4.17.1",

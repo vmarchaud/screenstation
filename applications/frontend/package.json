@@ -8,7 +8,8 @@
     "build": "vue-cli-service build --mode development",
     "build:prod": "vue-cli-service build --mode production",
     "deploy": "yarn version --new-version patch",
-    "compile": "cd server && yarn compile"
+    "compile": "cd server && yarn compile",
+    "move-bins": "cp ./bins/app ../../bins/station-api-linux-$TARGET_ENV"
   },
   "dependencies": {
     "@mmit/logging": "^0.1.5",

@@ -9,7 +9,8 @@
     "build-worker": "cd applications/worker && yarn build && yarn compile",
     "build-api": "cd applications/api && yarn build && yarn compile",
     "build-front": "cd applications/frontend && yarn build:prod && yarn compile",
-    "build": "yarn build-worker && yarn build-api && yarn build-front"
+    "build": "export TARGET_ENV=x64 && yarn build-worker && yarn build-api && yarn build-front",
+    "build:arm": "export TARGET_ENV=armv7 && yarn build-api && yarn build-api && yarn build-front"
   },
   "devDependencies": {
     "lerna": "^3.20.2"
