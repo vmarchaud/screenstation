@@ -27,7 +27,23 @@ A summary of features that you can use:
 # How to use
 
 Currently targeting both `armv7` (except of the frontend, but shouldn't be hard to build from source) and `x86`, you can find the last build i've made on the latest release (v0.3.3). 
+
 When you have all binaries on your host, you simply need to launch them one by one (order: api -> worker -> frontend). There are systemd service template in `/deploy` if you want.
+
 All the services are discovering themselves over mdns so there is no config to do prior to launching all services.
 After few seconds, you should be able to reach `screenstation.local` from your browser.
+
+# Screenshots
+
+### Homescreen
+![Screenshot from 2021-11-21 17-31-05](https://user-images.githubusercontent.com/2820968/142770716-f51554f7-758a-43d5-a699-bfb909e5a8b4.png)
+### Set a refresh time for a view
+![Screenshot from 2021-11-21 17-31-27](https://user-images.githubusercontent.com/2820968/142770719-a55e9124-db47-4545-aacd-9bb32b38e053.png)
+### Remotely control a view
+![Screenshot from 2021-11-21 17-31-46](https://user-images.githubusercontent.com/2820968/142770741-5e25bad5-89b7-4973-bdfc-d3e5c1ff5f72.png)
+### Set an url
+![Screenshot from 2021-11-21 17-32-09](https://user-images.githubusercontent.com/2820968/142770742-f6db8fe0-3604-4732-9cf5-097c5ee403c0.png)
+### Cast to a chromecast
+![Screenshot from 2021-11-21 17-35-02](https://user-images.githubusercontent.com/2820968/142770744-9ae9ff42-db3d-4584-af26-56a618448d3e.png)
+
 
